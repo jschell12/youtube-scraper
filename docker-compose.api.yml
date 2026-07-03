@@ -1,0 +1,16 @@
+services:
+  youtube-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: youtube-api
+    restart: unless-stopped
+    environment:
+      PORT: "3330"
+      YOUTUBE_OUTPUT_DIR: /data/youtube
+      CONTAINERIZED: "true"
+      TZ: America/New_York
+    volumes:
+      - ${YOUTUBE_OUTPUT:-${HOME}/development/github.com/jschell12/youtube-scraper/output}:/data/youtube:ro
+    ports:
+      - "127.0.0.1:3330:3330"

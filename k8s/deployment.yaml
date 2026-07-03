@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: youtube-api
+  namespace: youtube
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: youtube-api
+  template:
+    metadata:
+      labels:
+        app: youtube-api
+    spec:
+      containers:
+        - name: youtube-api
+          image: youtube-api:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 3330
+          env:
+            - name: PORT
+              value: "3330"
+            - name: YOUTUBE_OUTPUT_DIR
+              value: /data/youtube
+            - name: CONTAINERIZED
+              value: "true"
+            - name: TZ
+              value: America/New_York
+          volumeMounts:
+            - name: youtube-output
+              mountPath: /data/youtube
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3330
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 100m
+      volumes:
+        - name: youtube-output
+          hostPath:
+            path: /Users/joshschell/data/youtube
+            type: Directory

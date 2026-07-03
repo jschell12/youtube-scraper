@@ -9,7 +9,9 @@
   "scripts": {
     "scrape": "node cli.js scrape"
   },
-  "dependencies": {},
+  "dependencies": {
+    "express": "^4.22.2"
+  },
   "engines": {
     "node": ">=18"
   }

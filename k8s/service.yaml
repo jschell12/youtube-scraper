@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: youtube-api
+  namespace: youtube
+spec:
+  selector:
+    app: youtube-api
+  type: NodePort
+  ports:
+    - port: 3330
+      targetPort: 3330
+      nodePort: 30330

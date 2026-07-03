@@ -1,0 +1,17 @@
+FROM node:22-slim
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev 2>/dev/null || npm install express --omit=dev
+
+COPY api/ ./api/
+
+EXPOSE 3330
+
+ENV PORT=3330 \
+    YOUTUBE_OUTPUT_DIR=/data/youtube \
+    CONTAINERIZED=true \
+    TZ=America/New_York
+
+CMD ["node", "api/index.mjs"]
