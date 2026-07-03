@@ -1,0 +1,21 @@
+# YouTube Scraper Configuration
+# Add channels, playlists, or individual videos to scrape
+
+# Output directory (relative to project root or absolute)
+output_dir: ./output
+
+# How far back to look for new videos (hours)
+since_hours: 24
+
+# Claude model for summarization (uses claude CLI)
+model: haiku
+
+channels:
+  # - https://www.youtube.com/@ChannelName
+  # - https://www.youtube.com/@AnotherChannel
+
+playlists:
+  # - https://www.youtube.com/playlist?list=PLxxxxxxx
+
+videos:
+  # - https://www.youtube.com/watch?v=xxxxxxx

@@ -1,0 +1,18 @@
+{
+  "name": "youtube-scraper",
+  "version": "1.0.0",
+  "description": "Scrape and summarize YouTube videos — transcripts, daily briefings, ticker extraction",
+  "type": "module",
+  "bin": {
+    "yt-scrape": "./cli.js"
+  },
+  "scripts": {
+    "scrape": "node cli.js scrape",
+    "summarize": "node cli.js summarize",
+    "tickers": "node cli.js tickers"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18"
+  }
+}
