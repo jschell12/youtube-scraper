@@ -5,14 +5,17 @@
 output_dir: ./output
 
 # How far back to look for new videos (hours)
-since_hours: 24
+since_hours: 48
 
 # Claude model for categorization (uses claude CLI)
 model: haiku
 
 channels:
-  # - https://www.youtube.com/@ChannelName
-  # - https://www.youtube.com/@AnotherChannel
+  - https://www.youtube.com/@mkbhd
+  - https://www.youtube.com/@CNBCtelevision
+  - https://www.youtube.com/@Fireship
+  - https://www.youtube.com/@JoshStrifeHayes
+  # - https://www.youtube.com/@BabbishCulinaryUniverse
 
 playlists:
   # - https://www.youtube.com/playlist?list=PLxxxxxxx
