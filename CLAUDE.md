@@ -27,6 +27,8 @@ node cli.js summarize [dayDir]        # Re-generate summaries for existing trans
 - `lib/claude.js` — Claude CLI wrapper (`claude -p`)
 - `lib/config.js` — Simple YAML parser for config.yaml
 - `config.yaml` — User config: channels, playlists, videos, output_dir, model
+- `mcp/server.mjs` — MCP server (stdio) exposing 6 tools for Claude Code / Claude Desktop
+- `api/server.mjs` — REST API server (Express, port 3330)
 
 ## Categories
 
@@ -42,8 +44,25 @@ output/
     _summary-<videoId>-<slug>.md     # Structured summary (tables, key advice, verdict)
 ```
 
+## MCP Server
+
+Stdio-based MCP server at `mcp/server.mjs` with 6 tools:
+
+| Tool | Purpose |
+|------|---------|
+| `scrape_youtube` | Scrape videos from a URL or config.yaml |
+| `search_videos` | Keyword search across scraped transcripts |
+| `list_videos` | List videos by date/category |
+| `get_video_summary` | Get structured summary for a video ID |
+| `list_categories` | Category counts |
+| `list_days` | Date listing with video counts |
+
+Run with: `node mcp/server.mjs` or `npm run mcp`
+
 ## Dependencies
 
 - **yt-dlp** (system): `pip install yt-dlp` or `brew install yt-dlp`
 - **claude** (system): Claude CLI for categorization and summarization
-- **Node.js >=18**: No npm dependencies — uses only built-in modules
+- **@modelcontextprotocol/sdk**: MCP server framework
+- **express**: REST API server
+- **Node.js >=18**
