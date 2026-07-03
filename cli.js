@@ -5,9 +5,12 @@
  *
  * Usage:
  *   node cli.js scrape [--url URL...] [--config config.yaml] [--since-hours 24] [--limit 50] [--rescrape]
+ *   node cli.js summarize [dayDir]
  */
 
+import path from 'node:path';
 import { scrape } from './lib/scrape.js';
+import { summarizeDay } from './lib/summarize.js';
 import { loadConfig } from './lib/config.js';
 
 const args = process.argv.slice(2);
@@ -35,6 +38,11 @@ function flagAll(name) {
 
 function hasFlag(name) {
   return args.includes(name);
+}
+
+function todayDir(outputDir) {
+  const today = new Date().toISOString().slice(0, 10);
+  return path.join(outputDir, today);
 }
 
 async function main() {
@@ -66,18 +74,27 @@ async function main() {
       break;
     }
 
+    case 'summarize': {
+      const dir = args[1]?.startsWith('-') ? undefined : args[1];
+      await summarizeDay(dir || todayDir(outputDir), { model });
+      break;
+    }
+
     default:
       console.log(`YouTube Scraper
 
 Commands:
-  scrape      Fetch and categorize YouTube video transcripts
+  scrape      Fetch, categorize, and summarize YouTube video transcripts
               --url URL        One or more YouTube URLs (or uses config.yaml)
               --since-hours N  Only videos from last N hours (default: 24)
               --limit N        Max videos per source (default: 50)
               --rescrape       Ignore seen ledger, re-process all
               --config PATH    Config file (default: config.yaml)
               --output DIR     Output directory (default: ./output)
-              --model M        Claude model for categorization: haiku|sonnet|opus (default: haiku)`);
+              --model M        Claude model: haiku|sonnet|opus (default: haiku)
+
+  summarize   Re-generate summaries for already-scraped videos
+              [dayDir]         Directory to summarize (default: today)`);
       break;
   }
 }

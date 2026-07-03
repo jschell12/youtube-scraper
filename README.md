@@ -21,6 +21,9 @@ node cli.js scrape --url "https://www.youtube.com/@ChannelName"
 
 # Re-process already-seen videos
 node cli.js scrape --url "URL" --rescrape
+
+# Re-generate summaries for today's videos
+node cli.js summarize
 ```
 
 ## Config-Based Scraping
@@ -68,4 +71,6 @@ Each video is automatically classified into one of:
 
 ## Output
 
-Videos are saved as markdown in `output/<date>/` with transcript text and category metadata.
+Each video produces two files in `output/<date>/`:
+- `<videoId>-<slug>.md` — transcript with metadata and category
+- `_summary-<videoId>-<slug>.md` — structured summary with tables tailored to the category (e.g., product comparisons for reviews, ticker tables for financial, recipe steps for cooking)
