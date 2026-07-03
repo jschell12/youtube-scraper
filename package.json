@@ -1,15 +1,13 @@
 {
   "name": "youtube-scraper",
   "version": "1.0.0",
-  "description": "Scrape and summarize YouTube videos — transcripts, daily briefings, ticker extraction",
+  "description": "Scrape YouTube video transcripts and categorize with Claude",
   "type": "module",
   "bin": {
     "yt-scrape": "./cli.js"
   },
   "scripts": {
-    "scrape": "node cli.js scrape",
-    "summarize": "node cli.js summarize",
-    "tickers": "node cli.js tickers"
+    "scrape": "node cli.js scrape"
   },
   "dependencies": {},
   "engines": {

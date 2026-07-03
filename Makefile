@@ -1,4 +1,4 @@
-.PHONY: install setup scrape summarize tickers run
+.PHONY: install setup scrape
 
 install:
 	@command -v yt-dlp >/dev/null 2>&1 || { echo "Installing yt-dlp..."; pip install yt-dlp; }
@@ -10,12 +10,3 @@ setup: install
 
 scrape:
 	node cli.js scrape
-
-summarize:
-	node cli.js summarize
-
-tickers:
-	node cli.js tickers
-
-run:
-	node cli.js run
