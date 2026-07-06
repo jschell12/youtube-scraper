@@ -9,6 +9,7 @@
  */
 
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { scrape } from './lib/scrape.js';
 import { summarizeDay } from './lib/summarize.js';
 import { loadConfig } from './lib/config.js';
@@ -71,6 +72,23 @@ async function main() {
         limit: parseInt(flag('--limit') || '50', 10),
         rescrape: hasFlag('--rescrape'),
       });
+
+      // Sync to Google Drive
+      if (!hasFlag('--no-sync')) {
+        try {
+          execFileSync('rclone', ['listremotes'], { stdio: 'pipe' });
+          const remotes = execFileSync('rclone', ['listremotes'], { encoding: 'utf8' });
+          if (remotes.includes('gdrive:')) {
+            console.error('syncing to Google Drive...');
+            execFileSync('rclone', [
+              'sync', outputDir, 'gdrive:youtube-scraper-output',
+              '--exclude', 'seen.json',
+            ], { stdio: 'inherit' });
+          }
+        } catch {
+          // rclone not installed or gdrive not configured — skip silently
+        }
+      }
       break;
     }
 
