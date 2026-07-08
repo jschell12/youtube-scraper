@@ -73,20 +73,19 @@ async function main() {
         rescrape: hasFlag('--rescrape'),
       });
 
-      // Sync to Google Drive
+      // Sync to Cloudflare R2
       if (!hasFlag('--no-sync')) {
         try {
-          execFileSync('rclone', ['listremotes'], { stdio: 'pipe' });
           const remotes = execFileSync('rclone', ['listremotes'], { encoding: 'utf8' });
-          if (remotes.includes('gdrive:')) {
-            console.error('syncing to Google Drive...');
+          if (remotes.includes('r2:')) {
+            console.error('syncing to R2...');
             execFileSync('rclone', [
-              'sync', outputDir, 'gdrive:youtube-scraper-output',
+              'sync', outputDir, 'r2:scraper-data/youtube',
               '--exclude', 'seen.json',
             ], { stdio: 'inherit' });
           }
         } catch {
-          // rclone not installed or gdrive not configured — skip silently
+          // rclone not installed or r2 not configured — skip silently
         }
       }
       break;
