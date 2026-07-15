@@ -1,24 +1,25 @@
+# Status
+
+## 2026-07-15
+
+### Completed
+- Multi-dimensional classification: lib/taxonomy.js (143 kinds, 14 domains), lib/classify.js (Claude CLI JSON), backward-compatible categorize.js wrapper
+- Classification JSON persisted as _classify-<id>.json alongside transcripts, synced to R2
+- API serves classification on video detail, primaryKind/domain on list, supports ?kind= and ?domain= filters
+- Summary templates rewritten per user preferences: exact prices/specs/timestamps/where-to-buy (product), grocery list by section/nutrition/equipment (cooking), Robinhood links/bull-bear/options table (financial), tools table with versions (tech), source attribution/timeline (news), routine table/supplements/citations (health), budget breakdown/skip list (travel), score+pros-cons/build table (gaming)
+- Claude CLI auth fix: env prepends /opt/homebrew/bin, strips ANTHROPIC_API_KEY
+- Ledger stores primaryKind, domain, topics, entities
+- Full rescrape: 49 videos classified with sonnet across 17 kinds, all summaries regenerated
+
+### Blockers
+- None
+
+### Next steps
+- Add more channels to config.yaml
+- Template refinements as new video types are encountered
+
 ## 2026-07-03
 
-**Completed:**
-- Project scaffolding (zero npm deps initially, now express for API)
-- yt-dlp transcript extraction (single video, channel, playlist) with SRT parsing and dedup
-- 16-category classification via Claude CLI
-- Category-aware structured summaries with tailored templates per category
-- Dedup ledger with incremental persistence (seen.json)
-- CLI with scrape + summarize commands
-- Config-based channel scraping (MKBHD, CNBC, Fireship, Josh Strife Hayes)
-- REST API server (Express): health, days, videos, search, categories endpoints
-- Dockerfile.api + docker-compose.api.yml
-- k8s manifests: Deployment, NodePort Service (:30330), namespace
-- LaunchAgent Ansible role created in ai-setup (feature/k3s-api-platform branch)
-- Private GitHub repo created and pushed
-
-**In progress:** None
-
-**Blockers:** None
-
-**Next steps:**
-- Deploy API to k3s (build image, load into containerd, apply manifests)
-- Merge ai-setup branch to enable LaunchAgent on Mac Mini
-- Add more YouTube channels/playlists to config.yaml
+### Completed
+- Project scaffolding, yt-dlp extraction, 16-category classification, structured summaries
+- REST API, CLI, config-based scraping, Dockerfile, k8s manifests
