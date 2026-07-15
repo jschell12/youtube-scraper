@@ -20,5 +20,5 @@ deploy:
 		--exclude='node_modules' \
 		--exclude='output' \
 		./ $(DEPLOY_HOST):$(DEPLOY_DIR)/
-	ssh $(DEPLOY_HOST) "cd $(DEPLOY_DIR) && /opt/homebrew/bin/npm install --production --prefer-offline 2>&1 | tail -3"
+	ssh $(DEPLOY_HOST) "export PATH=/opt/homebrew/bin:\$$PATH && cd $(DEPLOY_DIR) && npm install --production --prefer-offline 2>&1 | tail -3"
 	@echo "Deployed."
