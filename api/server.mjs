@@ -71,6 +71,17 @@ app.get('/api/days', (req, res) => {
     if (!fs.statSync(outputDir).isDirectory()) return res.json({ days: [] });
   } catch { return res.json({ days: [] }); }
 
+  if (req.query.dateBy === 'publish') {
+    // Return unique video upload dates from the ledger
+    const seen = readSeen();
+    const dateSet = new Set();
+    for (const entry of Object.values(seen)) {
+      if (entry.uploadDate) dateSet.add(entry.uploadDate);
+    }
+    const days = [...dateSet].sort().reverse();
+    return res.json({ count: days.length, days });
+  }
+
   const days = fs.readdirSync(outputDir)
     .filter(d => DAY_RE.test(d) && fs.statSync(path.join(outputDir, d)).isDirectory())
     .sort()
@@ -95,7 +106,48 @@ app.get('/api/videos', (req, res) => {
   const categoryFilter = req.query.category || null;
   const kindFilter = req.query.kind || null;
   const domainFilter = req.query.domain || null;
+  const dateBy = req.query.dateBy || null;
   const seen = readSeen();
+
+  if (dateBy === 'publish') {
+    // Filter across all scrape days by video upload date
+    const videos = [];
+    const seenIds = new Set();
+    let dirs;
+    try {
+      dirs = fs.readdirSync(outputDir).filter(d => DAY_RE.test(d)).sort().reverse();
+    } catch { dirs = []; }
+
+    for (const d of dirs) {
+      const dayDir = path.join(outputDir, d);
+      const files = fs.readdirSync(dayDir)
+        .filter(f => f.endsWith('.md') && !f.startsWith('_summary-'));
+      for (const f of files) {
+        const match = f.match(/^([A-Za-z0-9_-]{11})-(.+)\.md$/);
+        if (!match) continue;
+        const id = match[1];
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
+        const entry = seen[id] || {};
+        if (entry.uploadDate !== date) continue;
+        if (categoryFilter && entry.category !== categoryFilter) continue;
+        if (kindFilter && entry.primaryKind !== kindFilter) continue;
+        if (domainFilter && entry.domain !== domainFilter) continue;
+        videos.push({
+          id,
+          title: entry.title || match[2].replace(/-/g, ' '),
+          channel: entry.channel || null,
+          category: entry.category || null,
+          primaryKind: entry.primaryKind || null,
+          domain: entry.domain || null,
+          url: entry.url || null,
+          date: entry.uploadDate || d,
+        });
+      }
+    }
+    return res.json({ date, count: videos.length, videos });
+  }
+
   const dayDir = path.join(outputDir, date);
 
   if (!fs.existsSync(dayDir)) return res.json({ date, videos: [] });
