@@ -50,7 +50,7 @@ async function main() {
   const configPath = flag('--config') || 'config.yaml';
   const config = await loadConfig(configPath);
   const outputDir = flag('--output') || config.output_dir || './output';
-  const model = flag('--model') || config.model || 'haiku';
+  const model = flag('--model') || config.model || 'ollama';
 
   switch (command) {
     case 'scrape': {
@@ -108,7 +108,7 @@ Commands:
               --rescrape       Ignore seen ledger, re-process all
               --config PATH    Config file (default: config.yaml)
               --output DIR     Output directory (default: ./output)
-              --model M        Claude model: haiku|sonnet|opus (default: haiku)
+              --model M        LLM: ollama|haiku|sonnet|opus (default: ollama)
 
   summarize   Re-generate summaries for already-scraped videos
               [dayDir]         Directory to summarize (default: today)`);
