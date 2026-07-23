@@ -7,8 +7,11 @@ output_dir: ./output
 # How far back to look for new videos (hours)
 since_hours: 48
 
-# Claude model for categorization (uses claude CLI)
-model: haiku
+# LLM for categorization + summarization.
+# "ollama" = mistral-small:24b on the Framework (free, local; Claude CLI fallback).
+# "haiku"/"sonnet"/"opus" force the Claude CLI — which fails under root Nomad
+# (claude -p refuses --dangerously-skip-permissions as root).
+model: ollama
 
 channels:
   - https://www.youtube.com/@mkbhd
