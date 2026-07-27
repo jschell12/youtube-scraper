@@ -13,6 +13,7 @@ import { execFileSync } from 'node:child_process';
 import { scrape } from './lib/scrape.js';
 import { summarizeDay } from './lib/summarize.js';
 import { loadConfig } from './lib/config.js';
+import { readProfiles, mergeSources } from './lib/profiles.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -55,9 +56,11 @@ async function main() {
   switch (command) {
     case 'scrape': {
       const urls = flagAll('--url');
+      // Union of base config sources and all profile sources (see lib/profiles.js)
+      const sources = mergeSources(config, readProfiles(outputDir));
       const allUrls = [
         ...urls,
-        ...(urls.length === 0 ? [...(config.channels || []), ...(config.playlists || []), ...(config.videos || [])] : []),
+        ...(urls.length === 0 ? [...sources.channels, ...sources.playlists, ...sources.videos] : []),
       ];
 
       if (allUrls.length === 0) {
@@ -82,6 +85,7 @@ async function main() {
             execFileSync('rclone', [
               'sync', outputDir, 'r2:scraper-data/youtube',
               '--exclude', 'seen.json',
+              '--exclude', 'profiles.json',
             ], { stdio: 'inherit' });
           }
         } catch {
