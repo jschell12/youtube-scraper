@@ -2,11 +2,14 @@ import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 import { TAXONOMY } from '../lib/taxonomy.js';
+import { loadConfig } from '../lib/config.js';
+import { readProfiles, writeProfile, mergeSources, SOURCE_KEYS, PROFILE_NAME_RE } from '../lib/profiles.js';
 
 const app = express();
 app.use(express.json());
 
 const outputDir = process.env.YOUTUBE_OUTPUT_DIR || './output';
+const configPath = process.env.YOUTUBE_CONFIG_PATH || './config.yaml';
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const CATEGORIES = [
@@ -289,6 +292,39 @@ app.get('/api/search', (req, res) => {
   }
 
   res.json({ query: q, count: results.length, results });
+});
+
+// Config: base sources + per-profile sources + effective union
+app.get('/api/config', async (_req, res) => {
+  try {
+    const baseConfig = await loadConfig(configPath);
+    const base = Object.fromEntries(SOURCE_KEYS.map(k => [k, baseConfig[k] || []]));
+    const profilesDoc = readProfiles(outputDir);
+    res.json({
+      base,
+      profiles: profilesDoc.profiles,
+      effective: mergeSources(baseConfig, profilesDoc),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Upsert one profile's sources
+app.put('/api/config/profiles/:name', async (req, res) => {
+  const { name } = req.params;
+  if (!PROFILE_NAME_RE.test(name)) {
+    return res.status(400).json({ error: `invalid profile name "${name}"` });
+  }
+  try {
+    const doc = writeProfile(outputDir, name, req.body);
+    res.json({ name, profile: doc.profiles[name] });
+  } catch (err) {
+    if (err.validationErrors) {
+      return res.status(400).json({ error: err.message, errors: err.validationErrors });
+    }
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Scrape (disabled)
