@@ -4,6 +4,7 @@ import path from 'node:path';
 import { TAXONOMY } from '../lib/taxonomy.js';
 import { loadConfig } from '../lib/config.js';
 import { readProfiles, writeProfile, mergeSources, SOURCE_KEYS, PROFILE_NAME_RE } from '../lib/profiles.js';
+import { fetchSubscriptions } from '../lib/google-auth.js';
 
 const app = express();
 app.use(express.json());
@@ -324,6 +325,23 @@ app.put('/api/config/profiles/:name', async (req, res) => {
       return res.status(400).json({ error: err.message, errors: err.validationErrors });
     }
     res.status(500).json({ error: err.message });
+  }
+});
+
+// YouTube channel subscriptions for a profile (requires per-profile OAuth token)
+app.get('/api/subscriptions/:profile', async (req, res) => {
+  const { profile } = req.params;
+  if (!PROFILE_NAME_RE.test(profile)) {
+    return res.status(400).json({ error: `invalid profile name "${profile}"` });
+  }
+  try {
+    const subscriptions = await fetchSubscriptions(outputDir, profile);
+    res.json({ profile, count: subscriptions.length, subscriptions });
+  } catch (err) {
+    if (err.code === 'NO_TOKEN' || err.code === 'NO_REFRESH_TOKEN' || err.code === 'INVALID_GRANT') {
+      return res.status(404).json({ error: err.message, code: err.code });
+    }
+    res.status(502).json({ error: err.message, code: err.code || null });
   }
 });
 

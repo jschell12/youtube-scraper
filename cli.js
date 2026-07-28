@@ -86,6 +86,7 @@ async function main() {
               'sync', outputDir, 'r2:scraper-data/youtube',
               '--exclude', 'seen.json',
               '--exclude', 'profiles.json',
+              '--exclude', 'tokens/**',
             ], { stdio: 'inherit' });
           }
         } catch {
