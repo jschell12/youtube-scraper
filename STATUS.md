@@ -1,5 +1,20 @@
 # Status
 
+## 2026-07-28
+
+### Completed
+- Per-profile YouTube subscriptions via Google OAuth (PR #9): connect a Google account per profile, pull subscribed channels as scrape sources
+- Profile-based source config with API endpoints (PR #8): profiles replace flat source lists, CRUD via REST API
+- Video publish date support in API (PR #6)
+- Switched LLM calls from Claude CLI to Ollama (mistral-small:24b) for classification and summarization; Ollama is now the default (PR #7)
+
+### Blockers
+- None
+
+### Next steps
+- Populate profiles with subscriptions from connected accounts
+- Monitor Ollama classification/summarization quality vs prior Claude output
+
 ## 2026-07-15
 
 ### Completed
