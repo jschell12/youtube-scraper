@@ -11,6 +11,7 @@
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { scrape } from './lib/scrape.js';
+import { exportNewsMd } from './lib/export-news.js';
 import { summarizeDay } from './lib/summarize.js';
 import { loadConfig } from './lib/config.js';
 import { readProfiles, mergeSources } from './lib/profiles.js';
@@ -76,6 +77,16 @@ async function main() {
         rescrape: hasFlag('--rescrape'),
       });
 
+      // Export table-format day files for the news pipeline (trading-platform)
+      if (process.env.NEWS_MD_DIR) {
+        try {
+          const res = await exportNewsMd(outputDir, process.env.NEWS_MD_DIR, { days: 3 });
+          console.error(`news-md export: ${res.videos} video(s) across ${res.days} day(s) -> ${process.env.NEWS_MD_DIR}`);
+        } catch (err) {
+          console.error(`news-md export failed: ${err.message}`);
+        }
+      }
+
       // Sync to Cloudflare R2
       if (!hasFlag('--no-sync')) {
         try {
@@ -93,6 +104,18 @@ async function main() {
           // rclone not installed or r2 not configured — skip silently
         }
       }
+      break;
+    }
+
+    case 'export-news': {
+      const newsDir = flag('--news-dir') || process.env.NEWS_MD_DIR;
+      if (!newsDir) {
+        console.error('No news dir. Use --news-dir or set NEWS_MD_DIR.');
+        process.exit(1);
+      }
+      const days = hasFlag('--all') ? Infinity : parseInt(flag('--days') || '3', 10);
+      const res = await exportNewsMd(outputDir, newsDir, { days });
+      console.log(`Exported ${res.videos} video(s) across ${res.days} day(s) -> ${newsDir}`);
       break;
     }
 
@@ -116,7 +139,12 @@ Commands:
               --model M        LLM: ollama|haiku|sonnet|opus (default: ollama)
 
   summarize   Re-generate summaries for already-scraped videos
-              [dayDir]         Directory to summarize (default: today)`);
+              [dayDir]         Directory to summarize (default: today)
+
+  export-news Write _youtube-videos.md day files for the news pipeline
+              --news-dir DIR   Destination (default: $NEWS_MD_DIR)
+              --days N         Last N day dirs (default: 3)
+              --all            All day dirs`);
       break;
   }
 }
