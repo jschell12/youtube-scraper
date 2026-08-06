@@ -1,5 +1,22 @@
 # Status
 
+## 2026-08-06
+
+### Completed
+- **YouTube Data API v3 discovery** (PR #13, merged + deployed): new `lib/youtube-api.js` resolves channel URLs (`@handle`, `/channel/`, `/user/`, playlists) to uploads playlists and lists recent videos via `playlistItems` (1-2 quota units/page). When `YOUTUBE_API_KEY` is set, ledger-seen videos are filtered **before** yt-dlp runs — yt-dlp only fetches transcripts for new videos. Falls back to yt-dlp listing on missing key, non-discoverable URLs, or API errors.
+- **API key provisioned**: created in Google Cloud Console (restricted to YouTube Data API v3), stored in scredmanager as `YOUTUBE_API_KEY`, live-verified (HTTP 200).
+- **Deployed to mac-mini**: `~/youtube-scraper` clone pulled to `f8dbedb`; key written to `~/.agentsecrets.d/youtube-scraper` (new file, mode 600, sourced by the Nomad job via `source-secrets`). Prod-path verified on the mini: key present, live discovery returned videos.
+
+### In progress
+- Nothing — next scheduled Nomad run will use API discovery automatically (look for `API discovery: N in window, M new` in job logs).
+
+### Blockers
+- None
+
+### Next steps
+- Watch the next Nomad run's logs to confirm API discovery + quota behavior in prod
+- Consider extending API discovery to OAuth profile subscription sources (currently only config.yaml channels/playlists benefit)
+
 ## 2026-07-28
 
 ### Completed
