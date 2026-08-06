@@ -20,6 +20,7 @@ node cli.js summarize [dayDir]        # Re-generate summaries for existing trans
 
 - `cli.js` — Entry point, arg parsing
 - `lib/extract.js` — yt-dlp wrapper: fetch metadata + transcripts, parse SRT
+- `lib/youtube-api.js` — Data API v3 discovery: when `YOUTUBE_API_KEY` is set, channel/playlist listing goes through the API and ledger-seen videos are skipped before yt-dlp runs (yt-dlp then only fetches transcripts for new videos); falls back to yt-dlp listing on any API failure or missing key
 - `lib/scrape.js` — Orchestrator: iterates URLs, categorizes, summarizes, writes markdown, updates ledger
 - `lib/categorize.js` — Classifies videos into categories via Claude CLI
 - `lib/summarize.js` — Category-specific structured summaries via Claude CLI (16 templates)
