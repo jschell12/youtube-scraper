@@ -4,7 +4,7 @@
  * YouTube Scraper CLI
  *
  * Usage:
- *   node cli.js scrape [--url URL...] [--config config.yaml] [--since-hours 24] [--limit 50] [--rescrape]
+ *   node cli.js scrape [--url URL...] [--config config.yaml] [--since-hours 24] [--limit 50] [--rescrape] [--category travel]
  *   node cli.js summarize [dayDir]
  */
 
@@ -75,6 +75,7 @@ async function main() {
         sinceHours: parseInt(flag('--since-hours') || config.since_hours || '24', 10),
         limit: parseInt(flag('--limit') || '50', 10),
         rescrape: hasFlag('--rescrape'),
+        forceCategory: flag('--category'),
       });
 
       // Export table-format day files for the news pipeline (trading-platform)
