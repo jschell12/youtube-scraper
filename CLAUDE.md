@@ -49,6 +49,11 @@ that description is the standard the judge applies). Keepers land in
 scrape includes it. A channel is proposed at most once — reviewed ids are never
 revived. `search.list` costs 100 quota units, so ~300 per topic per run.
 
+`discover()` also takes `known` (ids/handles/titles to skip) and `sink` (where
+keepers go) so an external app can drive the scout and keep the results in its own
+review queue — trip-wizard does this. Topics passed programmatically may carry
+`labels`, which makes the judge file each acceptance into one of them.
+
 ## Output Structure
 
 ```

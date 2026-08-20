@@ -114,6 +114,33 @@ rejection.
 runs about 300 units at the default 3 queries. Everything else in the pipeline
 (`channels.list`, `playlistItems.list`) costs 1 unit per call.
 
+### Driving discovery from another app
+
+An app with its own review queue can borrow the scout and keep the results:
+pass `known` (the ids/handles/titles it already has) and a `sink`, and
+`suggestions.json` is never touched. A topic may also carry `labels`, which makes
+the judge file each accepted channel into one of them.
+
+```js
+import { discover } from './lib/discover.js';
+
+await discover({
+  topics: [{
+    name: 'cruise',
+    about: 'cruise vacations: itinerary planning, cabin picks, dining, excursions, pricing',
+    labels: [{ name: 'dcl', description: 'Disney Cruise Line' }, { name: 'other', description: 'other lines' }],
+    defaultLabel: 'other',
+  }],
+  known: { ids: myChannelIds, handles: myHandles, titles: myTitles },
+  sink: async ({ channel, topic, verdict }) => postToMyApi(channel, topic, verdict),  // → true if stored
+});
+```
+
+A sink that throws costs that one channel, not the run; one that returns `false`
+(the app already had it) is not counted as a suggestion.
+[trip-wizard](https://github.com/jschell12/trip-wizard) uses this to file
+candidates in its own database and review them in its admin UI.
+
 ## Output
 
 Each video produces two files in `output/<date>/`:
