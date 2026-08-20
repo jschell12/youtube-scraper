@@ -25,3 +25,21 @@ playlists:
 
 videos:
   # - https://www.youtube.com/watch?v=xxxxxxx
+
+# --- Channel discovery (node cli.js discover) -------------------------------
+# Topics the scout searches for. Each entry is "<name>: <what you want>", and
+# the description is the standard the LLM judge holds candidates to — write it
+# the way you'd brief a person, saying what earns a place and what doesn't.
+# Needs YOUTUBE_API_KEY (search.list costs 100 quota units per query).
+# Keepers land in output/suggestions.json; review with `node cli.js suggestions`.
+
+discover_topics:
+  # - tech: hands-on consumer tech reviews with specs, benchmarks, and buying advice
+  # - cooking: recipe tutorials and technique explainers with real measurements
+  # - investing: company analysis and market coverage with actual numbers, not hype
+
+discover_queries_per_topic: 3
+discover_results_per_query: 10
+
+# Skip channels below this subscriber count before spending a judge call (0 = off)
+discover_min_subscribers: 0
