@@ -11,6 +11,9 @@
  *   get_video_summary     — Get the structured summary for a specific video
  *   list_categories       — List all available content categories
  *   list_days             — List all dates with scraped content
+ *   discover_channels     — Find new channels to follow (LLM-judged)
+ *   list_channel_suggestions — Review what discovery found
+ *   review_channel_suggestion — Approve (adds to a scrape profile) or dismiss
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -22,6 +25,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { listSuggestions, reviewSuggestion, DEFAULT_PROFILE } from '../lib/suggestions.js';
 
 const execFileP = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -189,6 +193,79 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {},
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'discover_channels',
+    description: 'Find NEW YouTube channels worth following (not new videos on known ones). Searches per topic from config.yaml, judges each candidate with the LLM, and stores keepers for review. Needs YOUTUBE_API_KEY; each topic costs ~300 YouTube quota units and takes a minute or two.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        topic: {
+          type: 'string',
+          description: 'Only search this configured topic. If omitted, all topics in config.yaml run.',
+        },
+        queries: {
+          type: 'number',
+          description: 'Search queries per topic (default: 3). Each costs 100 YouTube quota units.',
+        },
+        results: {
+          type: 'number',
+          description: 'Channels per query (default: 10).',
+        },
+        min_subscribers: {
+          type: 'number',
+          description: 'Skip channels below this subscriber count before judging (default: 0 = off).',
+        },
+        dry_run: {
+          type: 'boolean',
+          description: 'Judge and report without storing anything (default: false).',
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'list_channel_suggestions',
+    description: 'List channels that discovery proposed, with the reason each was accepted. No network access needed.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['suggested', 'approved', 'dismissed', 'all'],
+          description: 'Which channels to list (default: suggested).',
+        },
+        topic: {
+          type: 'string',
+          description: 'Filter by the topic that found the channel.',
+        },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'review_channel_suggestion',
+    description: 'Approve or dismiss a suggested channel. Approving adds it to a scrape profile so the next scrape includes it; dismissing keeps it out of future discovery runs. Both are permanent — a reviewed channel is never proposed again.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        channel_id: {
+          type: 'string',
+          description: 'The UC… channel id from list_channel_suggestions.',
+        },
+        decision: {
+          type: 'string',
+          enum: ['approve', 'dismiss'],
+          description: 'What to do with it.',
+        },
+        profile: {
+          type: 'string',
+          description: 'Profile approvals are added to (default: "discovered").',
+        },
+      },
+      required: ['channel_id', 'decision'],
       additionalProperties: false,
     },
   },
@@ -382,6 +459,59 @@ async function handleListDays() {
   return toolResult(lines.join('\n'));
 }
 
+async function handleDiscoverChannels(args) {
+  // Discovery needs the YouTube API and the LLM, same as scraping — shell out
+  // to the CLI so there is one implementation of the run.
+  const flags = ['discover'];
+  if (args.topic) flags.push('--topic', String(args.topic));
+  if (args.queries) flags.push('--queries', String(args.queries));
+  if (args.results) flags.push('--results', String(args.results));
+  if (args.min_subscribers) flags.push('--min-subscribers', String(args.min_subscribers));
+  if (args.dry_run) flags.push('--dry-run');
+
+  try {
+    const { stdout, stderr } = await runCli(flags);
+    return toolResult(stdout || stderr || 'Discovery finished with no output.');
+  } catch (err) {
+    return toolError(`Discovery failed: ${err.stderr || err.message}`);
+  }
+}
+
+function handleListChannelSuggestions(args) {
+  const status = args.status === 'all' ? undefined : (args.status || 'suggested');
+  const rows = listSuggestions(OUTPUT_DIR, { status, topic: args.topic });
+
+  if (rows.length === 0) {
+    return toolResult(status === 'suggested' || !status
+      ? 'No channel suggestions waiting. Run discover_channels to look for some.'
+      : `No ${status} channels.`);
+  }
+
+  const lines = [`${rows.length} channel(s):\n`];
+  for (const r of rows) {
+    lines.push(`**${r.title}** — ${r.topic || 'no topic'}${status ? '' : ` (${r.status})`}`);
+    lines.push(`  ID: ${r.id} | ${r.subscribers != null ? `${r.subscribers.toLocaleString()} subscribers` : 'subscribers unknown'}` +
+      `${r.videoCount != null ? ` | ${r.videoCount} videos` : ''}${r.lastUpload ? ` | last upload ${r.lastUpload.slice(0, 10)}` : ''}`);
+    lines.push(`  ${r.url}`);
+    if (r.rationale) lines.push(`  Why: ${r.rationale}`);
+    if (r.recentTitles?.length) lines.push(`  Recent: ${r.recentTitles.slice(0, 5).join(' · ')}`);
+    lines.push('');
+  }
+  return toolResult(lines.join('\n'));
+}
+
+function handleReviewChannelSuggestion(args) {
+  const { channel_id, decision, profile = DEFAULT_PROFILE } = args;
+  try {
+    const entry = reviewSuggestion(OUTPUT_DIR, channel_id, decision === 'approve' ? 'approved' : 'dismissed', { profile });
+    return toolResult(decision === 'approve'
+      ? `Approved **${entry.title}** — added to profile "${profile}", so the next scrape includes it.`
+      : `Dismissed **${entry.title}** — it will not be suggested again.`);
+  } catch (err) {
+    return toolError(err.message);
+  }
+}
+
 // ── Server Setup ────────────────────────────────────────────────────────
 
 const server = new Server(
@@ -409,6 +539,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return handleListCategories();
     case 'list_days':
       return handleListDays();
+    case 'discover_channels':
+      return handleDiscoverChannels(args);
+    case 'list_channel_suggestions':
+      return handleListChannelSuggestions(args);
+    case 'review_channel_suggestion':
+      return handleReviewChannelSuggestion(args);
     default:
       return toolError(`Unknown tool: ${name}`);
   }

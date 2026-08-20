@@ -4,6 +4,7 @@ import path from 'node:path';
 import { TAXONOMY } from '../lib/taxonomy.js';
 import { loadConfig } from '../lib/config.js';
 import { readProfiles, writeProfile, mergeSources, SOURCE_KEYS, PROFILE_NAME_RE } from '../lib/profiles.js';
+import { listSuggestions, reviewSuggestion, DEFAULT_PROFILE, CHANNEL_ID_RE } from '../lib/suggestions.js';
 import { fetchSubscriptions } from '../lib/google-auth.js';
 
 const app = express();
@@ -345,10 +346,46 @@ app.get('/api/subscriptions/:profile', async (req, res) => {
   }
 });
 
+// Channel suggestions from `cli.js discover` — read and review.
+app.get('/api/suggestions', (req, res) => {
+  const status = req.query.status === 'all' ? undefined : (req.query.status || 'suggested');
+  const channels = listSuggestions(outputDir, { status, topic: req.query.topic });
+  res.json({ count: channels.length, channels });
+});
+
+// Approve (adds the channel to a scrape profile) or dismiss one suggestion.
+app.post('/api/suggestions/:channelId/review', (req, res) => {
+  const { channelId } = req.params;
+  const { decision, profile = DEFAULT_PROFILE } = req.body || {};
+  if (!CHANNEL_ID_RE.test(channelId)) {
+    return res.status(400).json({ error: `invalid channel id "${channelId}"` });
+  }
+  if (decision !== 'approve' && decision !== 'dismiss') {
+    return res.status(400).json({ error: 'decision must be "approve" or "dismiss"' });
+  }
+  if (!PROFILE_NAME_RE.test(profile)) {
+    return res.status(400).json({ error: `invalid profile name "${profile}"` });
+  }
+  try {
+    const channel = reviewSuggestion(outputDir, channelId, decision === 'approve' ? 'approved' : 'dismissed', { profile });
+    res.json({ channel });
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
 // Scrape (disabled)
 app.post('/api/scrape', (_req, res) => {
   res.status(501).json({
     error: 'Scraping requires yt-dlp + Claude CLI. This endpoint is not available via the API.',
+  });
+});
+
+// Discovery (disabled) — same reason as scraping: it needs the LLM and the
+// YouTube API key. Run `node cli.js discover`, then review through this API.
+app.post('/api/discover', (_req, res) => {
+  res.status(501).json({
+    error: 'Channel discovery requires the YouTube Data API + an LLM. Run `node cli.js discover` (or the discover_channels MCP tool), then review at GET /api/suggestions.',
   });
 });
 
