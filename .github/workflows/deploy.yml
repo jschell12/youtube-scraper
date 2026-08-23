@@ -1,0 +1,28 @@
+# Deploy caller for jschell12/youtube-scraper.
+#
+# SHIP THIS FILE to the youtube-scraper repo as .github/workflows/deploy.yml
+#
+# Prerequisites:
+#   - mac-mini runner registered for the repo
+#   - CI_RUNNER_MAC=homelab-mac variable set on the repo
+#   - ~/.agentsecrets on the mini contains NOMAD_ADDR / NOMAD_TOKEN
+#
+# Runtime path: ~/youtube-scraper (legacy location referenced by the Nomad
+# job spec; the dev checkout at ~/development/.../youtube-scraper is separate).
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    uses: jschell12/schellout/.github/workflows/deploy-mini.yml@main
+    with:
+      nomad-job: youtube-scraper
+      runtime-path: /Users/joshschell/youtube-scraper
+    secrets: inherit
