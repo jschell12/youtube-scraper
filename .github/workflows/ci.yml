@@ -1,0 +1,12 @@
+name: CI
+
+on:
+  pull_request:
+  push: { branches: [main] }
+
+permissions: { contents: read }
+
+jobs:
+  ci:
+    uses: jschell12/schellout/.github/workflows/ci-node.yml@main
+    secrets: inherit
