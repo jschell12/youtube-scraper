@@ -3,3 +3,4 @@ output/
 *.log
 .DS_Store
 err.txt
+output-madden/

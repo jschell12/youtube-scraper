@@ -1,5 +1,19 @@
 # Status
 
+## 2026-10-08
+
+### Completed
+- Madden captions feed for play-formation-engine: `config.madden.yaml` (12 channels + rotating team-counter searches, <= 10/day), `search_*` config sources, `cli.js push` with append-only `pushed.jsonl`, LLM/news/R2 switches, 429 stops the scrape. First test suite (`npm test`, node:test).
+
+### In progress
+- schellout `youtube-madden` Nomad job (separate PR) runs it daily.
+
+### Blockers
+- PFE ingest token must be placed on the mini before pushes succeed.
+
+### Next steps
+- After first run, check `~/data/youtube-madden/pushed.jsonl` and the job log for 429s.
+
 ## 2026-08-06
 
 ### Completed

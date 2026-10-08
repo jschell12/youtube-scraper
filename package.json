@@ -8,7 +8,8 @@
   },
   "scripts": {
     "scrape": "node cli.js scrape",
-    "mcp": "node mcp/server.mjs"
+    "mcp": "node mcp/server.mjs",
+    "test": "node --test test/"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

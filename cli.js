@@ -8,6 +8,7 @@
  *   node cli.js summarize [dayDir]
  *   node cli.js discover [--topic NAME] [--queries N] [--results N] [--dry-run]
  *   node cli.js suggestions [--status S] [--approve ID...] [--dismiss ID...]
+ *   node cli.js push [--to URL] [--output DIR] [--limit N] [--dry-run]
  */
 
 import path from 'node:path';
@@ -19,6 +20,8 @@ import { loadConfig } from './lib/config.js';
 import { readProfiles, mergeSources } from './lib/profiles.js';
 import { discover, parseTopics } from './lib/discover.js';
 import { listSuggestions, reviewSuggestion, DEFAULT_PROFILE } from './lib/suggestions.js';
+import { pushTranscripts, accessHeadersFromEnv } from './lib/push.js';
+import { searchSources } from './lib/search-sources.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -65,7 +68,9 @@ async function main() {
       const sources = mergeSources(config, readProfiles(outputDir));
       const allUrls = [
         ...urls,
-        ...(urls.length === 0 ? [...sources.channels, ...sources.playlists, ...sources.videos] : []),
+        ...(urls.length === 0
+          ? [...sources.channels, ...sources.playlists, ...sources.videos, ...searchSources(config)]
+          : []),
       ];
 
       if (allUrls.length === 0) {
@@ -73,17 +78,22 @@ async function main() {
         process.exit(1);
       }
 
-      await scrape(allUrls, {
+      const result = await scrape(allUrls, {
         outputDir,
         model,
         sinceHours: parseInt(flag('--since-hours') || config.since_hours || '24', 10),
-        limit: parseInt(flag('--limit') || '50', 10),
+        limit: parseInt(flag('--limit') || config.limit || '50', 10),
         rescrape: hasFlag('--rescrape'),
-        forceCategory: flag('--category'),
+        forceCategory: flag('--category') || config.force_category,
+        // Config switches for side runs (e.g. config.madden.yaml) that must not
+        // spend LLM calls or feed the news pipeline / shared R2 prefix.
+        summarize: config.summarize !== false,
+        keepSrt: config.keep_srt === true,
       });
+      if (result.rateLimited) process.exitCode = 3;
 
       // Export table-format day files for the news pipeline (trading-platform)
-      if (process.env.NEWS_MD_DIR) {
+      if (process.env.NEWS_MD_DIR && config.news_export !== false) {
         try {
           const res = await exportNewsMd(outputDir, process.env.NEWS_MD_DIR, { days: 3 });
           console.error(`news-md export: ${res.videos} video(s) across ${res.days} day(s) -> ${process.env.NEWS_MD_DIR}`);
@@ -92,8 +102,10 @@ async function main() {
         }
       }
 
-      // Sync to Cloudflare R2
-      if (!hasFlag('--no-sync')) {
+      // Sync to Cloudflare R2. `rclone sync` mirrors outputDir onto a fixed
+      // prefix (and deletes what is not in outputDir), so any run with its own
+      // output dir must set r2_sync: false or it would wipe the main data.
+      if (!hasFlag('--no-sync') && config.r2_sync !== false) {
         try {
           const remotes = execFileSync('rclone', ['listremotes'], { encoding: 'utf8' });
           if (remotes.includes('r2:')) {
@@ -199,6 +211,40 @@ async function main() {
       break;
     }
 
+    case 'push': {
+      // Endpoint: --to wins; else $PFE_URL (base) + the PFE ingest path.
+      const to = flag('--to') ||
+        (process.env.PFE_URL ? new URL('/api/ingest/transcript', process.env.PFE_URL).toString() : '');
+      if (!to) {
+        console.error('No target. Use --to URL or set PFE_URL.');
+        process.exit(1);
+      }
+      const headers = accessHeadersFromEnv(process.env, 'PFE_INGEST_CLIENT_ID', 'PFE_INGEST_CLIENT_SECRET');
+      if (!headers['CF-Access-Client-Id'] && !hasFlag('--no-auth')) {
+        console.error('PFE_INGEST_CLIENT_ID / PFE_INGEST_CLIENT_SECRET are not set. ' +
+          'Load them from the secret store, or pass --no-auth for an unauthenticated target.');
+        process.exit(1);
+      }
+      console.log(`Pushing ${outputDir} -> ${to}` +
+        (headers['CF-Access-Client-Id'] ? ' (with CF Access service token)' : ' (no auth)'));
+      try {
+        const res = await pushTranscripts({
+          outputDir,
+          url: to,
+          headers,
+          limit: parseInt(flag('--limit') || '0', 10),
+          dryRun: hasFlag('--dry-run'),
+        });
+        console.log(`Done. ${res.pushed} ${hasFlag('--dry-run') ? 'would be pushed' : 'pushed'}, ` +
+          `${res.skipped} already pushed, ${res.oversize} over the size limit, ${res.pending} left for next run.`);
+      } catch (err) {
+        console.error(`Push stopped: ${err.message}`);
+        console.error('Nothing after this video was sent; the next run resumes from it.');
+        process.exit(2);
+      }
+      break;
+    }
+
     default:
       console.log(`YouTube Scraper
 
@@ -233,7 +279,19 @@ Commands:
   export-news Write _youtube-videos.md day files for the news pipeline
               --news-dir DIR   Destination (default: $NEWS_MD_DIR)
               --days N         Last N day dirs (default: 3)
-              --all            All day dirs`);
+              --all            All day dirs
+
+  push        POST each scraped video's raw SRT + metadata to a webhook. Needs a
+              scrape with keep_srt: true. Resumable: accepted pushes are
+              appended to <output>/pushed.jsonl and never re-sent. Stops at the
+              first non-2xx.
+              --to URL         Endpoint (default: $PFE_URL + /api/ingest/transcript)
+              --output DIR     Scrape output dir to read from
+              --limit N        Max videos this run (default: all)
+              --dry-run        List what would be sent, send nothing
+              --no-auth        Allow sending without PFE_INGEST_CLIENT_ID/SECRET
+              Auth: CF-Access-Client-Id/-Secret from $PFE_INGEST_CLIENT_ID and
+              $PFE_INGEST_CLIENT_SECRET (values are never printed).`);
       break;
   }
 }
