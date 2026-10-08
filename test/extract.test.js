@@ -29,6 +29,9 @@ test('publishedAt falls back to the upload date, never invents one', () => {
 test('isRateLimited matches yt-dlp 429 errors only', () => {
   assert.ok(isRateLimited("ERROR: Unable to download video subtitles for 'en': HTTP Error 429: Too Many Requests"));
   assert.ok(!isRateLimited('ERROR: [youtube] x: Video unavailable'));
+  // The soft block: same "Video unavailable" prefix, but a rate limit.
+  assert.ok(isRateLimited("ERROR: [youtube] x: Video unavailable. This content isn't available, try again later. " +
+    'The current session has been rate-limited by YouTube for up to an hour. It is recommended to use `-t sleep`'));
   assert.ok(!isRateLimited(''));
 });
 
