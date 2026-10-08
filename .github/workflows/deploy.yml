@@ -7,10 +7,12 @@ name: Deploy
 # Runs ON the mini's self-hosted runner, so it triggers on push to main only,
 # never on pull_request: fork code must not reach the homelab.
 #
-# No `rsync --delete`: the runtime holds files that are not in the repo
-# (config.yaml with the live channel list, caption-watcher.sh, .yt-tmp), and
-# deleting them would break the main scraper. config.yaml is never overwritten.
-# The periodic jobs pick the new code up on their next run; nothing restarts.
+# No `rsync --delete`: the runtime also holds what runs leave behind (.yt-tmp,
+# output when run without --output), and a delete would remove anything there
+# that is not in the repo. config.yaml ships like any other file.
+# The periodic batch jobs (youtube-scraper, youtube-madden) read the code on
+# their next run. The youtube-api-mini service runs api/ from this path and is
+# restarted below so an api/ change takes effect.
 
 on:
   push:
@@ -37,7 +39,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"     # the mini runs 26; `node --test test/` needs 22.x+ directory support, which 22 lacks
           cache: npm
       - name: Test before shipping
         run: |
@@ -49,7 +51,12 @@ jobs:
           mkdir -p "$RUNTIME_PATH"
           rsync -a \
             --exclude '.git' --exclude '.github' --exclude 'node_modules' \
-            --exclude 'config.yaml' \
             ./ "$RUNTIME_PATH/"
           cd "$RUNTIME_PATH"
           npm ci --omit=dev
+      - name: Restart the API service
+        run: |
+          set -euo pipefail
+          if [ -f "$HOME/.agentsecrets" ]; then . "$HOME/.agentsecrets"; fi
+          export NOMAD_ADDR="${NOMAD_ADDR:-http://10.0.0.2:4646}"
+          nomad job restart -on-error=fail youtube-api-mini
