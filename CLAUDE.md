@@ -17,7 +17,27 @@ node cli.js summarize [dayDir]        # Re-generate summaries for existing trans
 node cli.js discover                  # Find NEW channels to follow (LLM-judged)
 node cli.js suggestions               # Review what discover found
 node cli.js suggestions --approve ID  # Approve -> profile "discovered" -> next scrape
+node cli.js push --to URL --output DIR  # POST raw SRT + metadata per video (needs keep_srt: true)
+npm test                              # node:test suites under test/
 ```
+
+## Side runs (config.madden.yaml)
+
+A config can turn the scraper into a captions-only feed for another service:
+`force_category` + `summarize: false` mean no LLM calls, `news_export: false` and
+`r2_sync: false` keep it out of the news pipeline and the shared R2 prefix
+(`rclone sync` would otherwise delete the main data there), and `keep_srt: true`
+writes `<id>-<slug>.srt` + `_video-<id>.json`, which `push` sends. Always give a
+side run its own `--output` dir: `seen.json` is last-writer-wins.
+
+Search sources: `search_queries` (fixed) and `search_templates` x `search_teams`
+(rotated `search_teams_per_run` per UTC day) become `ytsearchN:` sources; ids are
+listed flat and filtered against the ledger before any caption fetch.
+
+A YouTube HTTP 429 stops the whole scrape (`RateLimitedError`, exit code 3) rather
+than moving on to the next source. Detection relies on yt-dlp printing the 429 on
+stderr; with `--no-warnings` a subtitle 429 that yt-dlp downgrades to a warning
+would still read as "no transcript".
 
 ## Architecture
 
@@ -27,6 +47,8 @@ node cli.js suggestions --approve ID  # Approve -> profile "discovered" -> next 
 - `lib/scrape.js` — Orchestrator: iterates URLs, categorizes, summarizes, writes markdown, updates ledger
 - `lib/categorize.js` — Classifies videos into categories via Claude CLI
 - `lib/summarize.js` — Category-specific structured summaries via Claude CLI (16 templates)
+- `lib/push.js` — `push` command: webhook POST per video, append-only `pushed.jsonl` ledger, stops on non-2xx
+- `lib/search-sources.js` — config searches to `ytsearchN:` sources, daily team rotation
 - `lib/ledger.js` — seen.json dedup (video ID → metadata + category, incremental persistence)
 - `lib/discover.js` — channel discovery: per-topic search → enrich → LLM judge (fails **closed**, unlike the summarizer) → suggestion queue
 - `lib/suggestions.js` — suggestions.json store (suggested/approved/dismissed); approving appends the channel to a profile, which is what puts it in the next scrape

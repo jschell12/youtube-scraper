@@ -1,0 +1,99 @@
+# Madden 27 side run: captions for play-formation-engine (PFE).
+#
+# Used by the `youtube-madden` Nomad job in schellout, which scrapes into its
+# own output dir (~/data/youtube-madden, so its seen.json never races the main
+# scraper's) and then runs `cli.js push` to send each video's raw SRT to PFE.
+#
+# This run makes no LLM calls and feeds nothing else:
+#   force_category  skips classification (no Ollama/Claude call per video)
+#   summarize       false skips the per-video summary (no LLM call)
+#   news_export     false keeps it out of NEWS_MD_DIR even if that is set
+#   r2_sync         false: `rclone sync` would mirror this dir onto the main
+#                   r2:scraper-data/youtube prefix and delete the real data
+#   keep_srt        writes <id>-<slug>.srt + _video-<id>.json for `push`
+
+output_dir: ./output-madden
+since_hours: 72
+limit: 3
+model: ollama
+force_category: madden
+summarize: false
+news_export: false
+r2_sync: false
+keep_srt: true
+
+channels:
+  # Goated Millz
+  - https://www.youtube.com/channel/UCq0E2VxkuCLW030arg74_jA
+  # WinMadden
+  - https://www.youtube.com/channel/UCPsw8H2VQdXSKkTYjY5wh0w
+  # Swolosimo
+  - https://www.youtube.com/channel/UChhUEHnAG0-dEvZBse6gCDw
+  # Sportsgamerz
+  - https://www.youtube.com/channel/UCyhQXIZVKnUNTlZ4g_eUVEw
+  # VENM Fire
+  - https://www.youtube.com/channel/UC5IxYfT8P4YPhCq4q0-6H_w
+  # BLT Madden 27
+  - https://www.youtube.com/channel/UCI2RRGSCacND1Xi6jWMPt1g
+  # Madden School
+  - https://www.youtube.com/channel/UCwZLmiLcq6QA7GD67NpGXhg
+  # CivilGG
+  - https://www.youtube.com/channel/UCrRiTjWdTatQ9q6ul9RIaog
+  # HuddleGG
+  - https://www.youtube.com/channel/UCIYBt_UqUqiXs-RZDYLC0sw
+  # EricRayweather
+  - https://www.youtube.com/channel/UCq_2n18CJaRVGxEfxtCfI-Q
+  # GmiasWorld
+  - https://www.youtube.com/channel/UCoAZQNN5r7j4Gm80anUuzDg
+  # Prometheus
+  - https://www.youtube.com/channel/UC8TE3tVf7PBOWbFZ5OdaSRw
+
+playlists:
+
+videos:
+
+# --- Team-specific counters (searches) --------------------------------------
+# Each run takes search_teams_per_run teams from the list below, advancing by
+# UTC day, and runs every template for each: 2 templates x 5 teams = 10
+# searches a day, all 32 teams covered every 7 days. Each search is one
+# flat listing; captions are fetched only for results not already in seen.json.
+search_results: 3
+search_teams_per_run: 5
+
+search_templates:
+  - Madden 27 how to stop the {team} offense
+  - Madden 27 how to beat the {team}
+
+search_teams:
+  - Bills
+  - Dolphins
+  - Patriots
+  - Jets
+  - Ravens
+  - Bengals
+  - Browns
+  - Steelers
+  - Texans
+  - Colts
+  - Jaguars
+  - Titans
+  - Broncos
+  - Chiefs
+  - Raiders
+  - Chargers
+  - Cowboys
+  - Giants
+  - Eagles
+  - Commanders
+  - Bears
+  - Lions
+  - Packers
+  - Vikings
+  - Falcons
+  - Panthers
+  - Saints
+  - Buccaneers
+  - Cardinals
+  - Rams
+  - 49ers
+  - Seahawks
