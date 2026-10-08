@@ -1,16 +1,18 @@
-# Deploy caller for jschell12/youtube-scraper.
-#
-# SHIP THIS FILE to the youtube-scraper repo as .github/workflows/deploy.yml
-#
-# Prerequisites:
-#   - mac-mini runner registered for the repo
-#   - CI_RUNNER_MAC=homelab-mac variable set on the repo
-#   - ~/.agentsecrets on the mini contains NOMAD_ADDR / NOMAD_TOKEN
-#
-# Runtime path: ~/youtube-scraper (legacy location referenced by the Nomad
-# job spec; the dev checkout at ~/development/.../youtube-scraper is separate).
-
 name: Deploy
+
+# Ships main to the mac-mini runtime (~/youtube-scraper, which the Nomad jobs
+# youtube-scraper and youtube-madden run from). Inline rather than calling
+# schellout's reusable deploy-mini.yml, which a public repo cannot call.
+#
+# Runs ON the mini's self-hosted runner, so it triggers on push to main only,
+# never on pull_request: fork code must not reach the homelab.
+#
+# No `rsync --delete`: the runtime also holds what runs leave behind (.yt-tmp,
+# output when run without --output), and a delete would remove anything there
+# that is not in the repo. config.yaml ships like any other file.
+# The periodic batch jobs (youtube-scraper, youtube-madden) read the code on
+# their next run. The youtube-api-mini service runs api/ from this path and is
+# restarted below so an api/ change takes effect.
 
 on:
   push:
@@ -19,10 +21,42 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-youtube-scraper
+  cancel-in-progress: false
+
 jobs:
   deploy:
-    uses: jschell12/schellout/.github/workflows/deploy-mini.yml@main
-    with:
-      nomad-job: youtube-scraper
-      runtime-path: /Users/joshschell/youtube-scraper
-    secrets: inherit
+    runs-on: ${{ vars.CI_RUNNER_MAC || 'macos-14' }}
+    env:
+      RUNTIME_PATH: /Users/joshschell/youtube-scraper
+    steps:
+      - name: Require the homelab runner
+        if: runner.environment == 'github-hosted'
+        run: |
+          echo "::error::Deploys run on the mac-mini (CI_RUNNER_MAC); this landed on a GitHub-hosted runner."
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26"     # the mini runs 26; `node --test test/` (a directory) fails on Node 22
+          cache: npm
+      - name: Test before shipping
+        run: |
+          npm ci
+          npm run test --if-present
+      - name: Sync into the runtime path
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNTIME_PATH"
+          rsync -a \
+            --exclude '.git' --exclude '.github' --exclude 'node_modules' \
+            ./ "$RUNTIME_PATH/"
+          cd "$RUNTIME_PATH"
+          npm ci --omit=dev
+      - name: Restart the API service
+        run: |
+          set -euo pipefail
+          if [ -f "$HOME/.agentsecrets" ]; then . "$HOME/.agentsecrets"; fi
+          export NOMAD_ADDR="${NOMAD_ADDR:-http://10.0.0.2:4646}"
+          nomad job restart -on-error=fail youtube-api-mini
