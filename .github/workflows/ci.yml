@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "26"     # the mini runs 26; `node --test test/` needs 22.x+ directory support, which 22 lacks
+          node-version: "26"     # the mini runs 26; `node --test test/` (a directory) fails on Node 22
           cache: npm
       - run: npm ci
       - run: npm run lint --if-present
