@@ -1,16 +1,16 @@
-# Deploy caller for jschell12/youtube-scraper.
-#
-# SHIP THIS FILE to the youtube-scraper repo as .github/workflows/deploy.yml
-#
-# Prerequisites:
-#   - mac-mini runner registered for the repo
-#   - CI_RUNNER_MAC=homelab-mac variable set on the repo
-#   - ~/.agentsecrets on the mini contains NOMAD_ADDR / NOMAD_TOKEN
-#
-# Runtime path: ~/youtube-scraper (legacy location referenced by the Nomad
-# job spec; the dev checkout at ~/development/.../youtube-scraper is separate).
-
 name: Deploy
+
+# Ships main to the mac-mini runtime (~/youtube-scraper, which the Nomad jobs
+# youtube-scraper and youtube-madden run from). Inline rather than calling
+# schellout's reusable deploy-mini.yml, which a public repo cannot call.
+#
+# Runs ON the mini's self-hosted runner, so it triggers on push to main only,
+# never on pull_request: fork code must not reach the homelab.
+#
+# No `rsync --delete`: the runtime holds files that are not in the repo
+# (config.yaml with the live channel list, caption-watcher.sh, .yt-tmp), and
+# deleting them would break the main scraper. config.yaml is never overwritten.
+# The periodic jobs pick the new code up on their next run; nothing restarts.
 
 on:
   push:
@@ -19,10 +19,37 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deploy-youtube-scraper
+  cancel-in-progress: false
+
 jobs:
   deploy:
-    uses: jschell12/schellout/.github/workflows/deploy-mini.yml@main
-    with:
-      nomad-job: youtube-scraper
-      runtime-path: /Users/joshschell/youtube-scraper
-    secrets: inherit
+    runs-on: ${{ vars.CI_RUNNER_MAC || 'macos-14' }}
+    env:
+      RUNTIME_PATH: /Users/joshschell/youtube-scraper
+    steps:
+      - name: Require the homelab runner
+        if: runner.environment == 'github-hosted'
+        run: |
+          echo "::error::Deploys run on the mac-mini (CI_RUNNER_MAC); this landed on a GitHub-hosted runner."
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Test before shipping
+        run: |
+          npm ci
+          npm run test --if-present
+      - name: Sync into the runtime path
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNTIME_PATH"
+          rsync -a \
+            --exclude '.git' --exclude '.github' --exclude 'node_modules' \
+            --exclude 'config.yaml' \
+            ./ "$RUNTIME_PATH/"
+          cd "$RUNTIME_PATH"
+          npm ci --omit=dev

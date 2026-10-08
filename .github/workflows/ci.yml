@@ -1,5 +1,12 @@
 name: CI
 
+# Inline rather than calling schellout's reusable ci-node.yml: this repo is
+# public and schellout is private, and GitHub does not let a public repo call a
+# private repo's workflows (every run since 2026-10-08 failed before starting).
+#
+# Always GitHub-hosted. A public repo's pull requests can come from forks, and
+# fork code must never run on the homelab runners.
+
 on:
   pull_request:
   push: { branches: [main] }
@@ -8,5 +15,14 @@ permissions: { contents: read }
 
 jobs:
   ci:
-    uses: jschell12/schellout/.github/workflows/ci-node.yml@main
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npm run lint --if-present
+      - run: npm run test --if-present
+      - run: npm run build --if-present
