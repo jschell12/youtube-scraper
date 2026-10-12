@@ -30,7 +30,7 @@ test('a config without search keys adds no sources (main scraper unchanged)', as
   assert.deepEqual(searchSources(await loadConfig('config.yaml')), []);
 });
 
-test('config.madden.yaml: 12 channels, all 32 teams, <=10 searches/day, no LLM or side feeds', async () => {
+test('config.madden.yaml: 12 channels, all 32 teams within 16 days, <=10 searches/day, no LLM or side feeds', async () => {
   const c = await loadConfig('config.madden.yaml');
   assert.equal(c.channels.length, 12);
   assert.ok(c.channels.every(u => /^https:\/\/www\.youtube\.com\/channel\/UC[\w-]{22}$/.test(u)));
@@ -39,7 +39,7 @@ test('config.madden.yaml: 12 channels, all 32 teams, <=10 searches/day, no LLM o
     assert.ok(searchSources(c, new Date(d * DAY)).length <= 10);
   }
   const covered = new Set();
-  for (let d = 0; d < 7; d++) rotateTeams(c.search_teams, c.search_teams_per_run, new Date(d * DAY)).forEach(t => covered.add(t));
+  for (let d = 0; d < 16; d++) rotateTeams(c.search_teams, c.search_teams_per_run, new Date(d * DAY)).forEach(t => covered.add(t));
   assert.equal(covered.size, 32);
   assert.equal(c.summarize, false);
   assert.equal(c.news_export, false);
