@@ -6,6 +6,9 @@ output_dir: ./output
 
 # How far back to look for new videos (hours)
 since_hours: 48
+# Seconds between sources. YouTube blocked caption downloads from the mini on 2026-10-10 after
+# about 12 runs a day; one paced run a day keeps under that.
+request_gap_seconds: 15
 
 # LLM for categorization + summarization.
 # "ollama" = mistral-small:24b on the Framework (free, local; Claude CLI fallback).
