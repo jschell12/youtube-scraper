@@ -47,3 +47,30 @@ test('parseFlatList keeps video ids and drops channel hits', () => {
 test('parseSrt strips timing and dedups repeats', () => {
   assert.equal(parseSrt('1\n00:00:01,000 --> 00:00:02,000\n<font>a</font>\n\n2\n00:00:02,000 --> 00:00:03,000\na\nb\n'), 'a b');
 });
+
+import { proxyUrl, withProxy } from '../lib/extract.js';
+
+test('no proxy unless host, user and password are all set', () => {
+  assert.equal(proxyUrl({}), null);
+  assert.equal(proxyUrl({ BRIGHTDATA_PROXY_HOST: 'h:1', BRIGHTDATA_PROXY_USER: 'u' }), null);
+  assert.deepEqual(withProxy(['-x'], {}), ['-x']);
+});
+
+test('proxy pins a sticky session per day and escapes the password', () => {
+  const env = { BRIGHTDATA_PROXY_HOST: 'brd.superproxy.io:44445', BRIGHTDATA_PROXY_USER: 'brd-customer-c1-zone-isp',
+                BRIGHTDATA_PROXY_PASS: 'p@ss:w/rd' };
+  const url = proxyUrl(env, new Date('2026-10-12T06:37:00Z'));
+  assert.equal(url, 'http://brd-customer-c1-zone-isp-session-yt20261012:p%40ss%3Aw%2Frd@brd.superproxy.io:44445');
+  assert.deepEqual(withProxy(['URL'], env, new Date('2026-10-12T06:37:00Z')), ['--proxy', url, 'URL']);
+  // a user that already carries a session gets it replaced, not doubled
+  assert.match(proxyUrl({ ...env, BRIGHTDATA_PROXY_USER: 'brd-customer-c1-zone-isp-session-old', YTDLP_PROXY_SESSION: 'x' }),
+               /zone-isp-session-x:/);
+});
+
+import { redact } from '../lib/extract.js';
+
+test('proxy credentials never survive into an error string', () => {
+  const s = 'Command failed: yt-dlp --proxy http://brd-customer-c1-zone-isp-session-x:s3cr%40t@brd.superproxy.io:44445 --x';
+  assert.equal(redact(s), 'Command failed: yt-dlp --proxy http://***@brd.superproxy.io:44445 --x');
+  assert.doesNotMatch(redact(s), /s3cr/);
+});
