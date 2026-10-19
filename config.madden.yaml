@@ -21,6 +21,8 @@
 output_dir: ./output-madden
 since_hours: 72
 limit: 3
+# Seconds between sources (see config.yaml).
+request_gap_seconds: 15
 model: ollama
 force_category: madden
 summarize: false
@@ -64,11 +66,12 @@ videos:
 
 # --- Team-specific counters (searches) --------------------------------------
 # Each run takes search_teams_per_run teams from the list below, advancing by
-# UTC day, and runs every template for each: 2 templates x 5 teams = 10
-# searches a day, all 32 teams covered every 7 days. Each search is one
+# UTC day, and runs every template for each: 2 templates x 2 teams = 4
+# searches a day, all 32 teams covered every 16 days. Each search is one
 # flat listing; captions are fetched only for results not already in seen.json.
 search_results: 3
-search_teams_per_run: 5
+# 5 until 2026-10-12; cut while YouTube's caption block clears.
+search_teams_per_run: 2
 
 search_templates:
   - Madden 27 how to stop the {team} offense

@@ -98,6 +98,7 @@ async function main() {
         // spend LLM calls or feed the news pipeline / shared R2 prefix.
         summarize: config.summarize !== false,
         keepSrt: config.keep_srt === true,
+        gapSeconds: parseFloat(flag('--gap-seconds') || config.request_gap_seconds || '0'),
       });
       if (result.rateLimited) process.exitCode = 3;
       if (result.stopped) process.exitCode = 4;   // a BrightData error stopped the run
