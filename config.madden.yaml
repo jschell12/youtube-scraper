@@ -11,6 +11,12 @@
 #   r2_sync         false: `rclone sync` would mirror this dir onto the main
 #                   r2:scraper-data/youtube prefix and delete the real data
 #   keep_srt        writes <id>-<slug>.srt + _video-<id>.json for `push`
+#
+# Transcripts come from BrightData's managed YouTube scraper, not yt-dlp
+# (lib/brightdata.js): YouTube has refused caption downloads from this job's
+# host since 2026-10-10. Discovery is the YouTube Data API (YOUTUBE_API_KEY),
+# the fetch needs BRIGHTDATA_API_KEY, and brightdata_max_records caps what one
+# run can buy ($1.50 per 1,000 records, so 50 is at most $0.075 a run).
 
 output_dir: ./output-madden
 since_hours: 72
@@ -21,8 +27,12 @@ summarize: false
 news_export: false
 r2_sync: false
 keep_srt: true
+transcript_source: brightdata
+brightdata_max_records: 50
 
 channels:
+  # Kurt Benkert (first: when a run hits the record cap, earlier sources win)
+  - https://www.youtube.com/channel/UCBJb4FwDLbfJzArYeM42Qiw
   # Goated Millz
   - https://www.youtube.com/channel/UCq0E2VxkuCLW030arg74_jA
   # WinMadden

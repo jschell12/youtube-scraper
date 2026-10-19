@@ -1,0 +1,164 @@
+{
+ "kind": "youtube#playlistItemListResponse",
+ "etag": "n69bE1MD5j5H4BZxF4J0BNc6AXE",
+ "nextPageToken": "EAAaHlBUOkNBTWlFREkyT0RJM01qRkNNVVJFTnpCRVJVRQ",
+ "items": [
+  {
+   "kind": "youtube#playlistItem",
+   "etag": "CoieObJ-ocUbVzj-bX2sDCDrWcc",
+   "id": "VVVCSmI0RndETGJmSnpBclllTTQyUWl3LnBFdHN4VmFaenU0",
+   "snippet": {
+    "publishedAt": "2026-10-19T17:30:59Z",
+    "channelId": "UCBJb4FwDLbfJzArYeM42Qiw",
+    "title": "Jordan Love is an MVP Candidate. Here's why 🤔",
+    "description": "Jordan Love is an MVP Candidate. Here's why 🤔\n#nfl #football #live #packers #qb",
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/pEtsxVaZzu4/default.jpg",
+      "width": 120,
+      "height": 90
+     },
+     "medium": {
+      "url": "https://i.ytimg.com/vi/pEtsxVaZzu4/mqdefault.jpg",
+      "width": 320,
+      "height": 180
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/pEtsxVaZzu4/hqdefault.jpg",
+      "width": 480,
+      "height": 360
+     },
+     "standard": {
+      "url": "https://i.ytimg.com/vi/pEtsxVaZzu4/sddefault.jpg",
+      "width": 640,
+      "height": 480
+     },
+     "maxres": {
+      "url": "https://i.ytimg.com/vi/pEtsxVaZzu4/maxresdefault.jpg",
+      "width": 1280,
+      "height": 720
+     }
+    },
+    "channelTitle": "Kurt Benkert",
+    "playlistId": "UUBJb4FwDLbfJzArYeM42Qiw",
+    "position": 0,
+    "resourceId": {
+     "kind": "youtube#video",
+     "videoId": "pEtsxVaZzu4"
+    },
+    "videoOwnerChannelTitle": "Kurt Benkert",
+    "videoOwnerChannelId": "UCBJb4FwDLbfJzArYeM42Qiw"
+   },
+   "contentDetails": {
+    "videoId": "pEtsxVaZzu4",
+    "videoPublishedAt": "2026-10-19T17:30:59Z"
+   }
+  },
+  {
+   "kind": "youtube#playlistItem",
+   "etag": "HgME_aiNiAqCq2e0JWjVKeIEAks",
+   "id": "VVVCSmI0RndETGJmSnpBclllTTQyUWl3LlA5bjdkT1kwUlpZ",
+   "snippet": {
+    "publishedAt": "2026-10-19T16:40:37Z",
+    "channelId": "UCBJb4FwDLbfJzArYeM42Qiw",
+    "title": "JJ McCarthy ALMOST saved the day for the #Giants! 👀",
+    "description": "JJ McCarthy ALMOST saved the day for the #Giants! 👀\n#nfl #football #giants #qb #live",
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/P9n7dOY0RZY/default.jpg",
+      "width": 120,
+      "height": 90
+     },
+     "medium": {
+      "url": "https://i.ytimg.com/vi/P9n7dOY0RZY/mqdefault.jpg",
+      "width": 320,
+      "height": 180
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/P9n7dOY0RZY/hqdefault.jpg",
+      "width": 480,
+      "height": 360
+     },
+     "standard": {
+      "url": "https://i.ytimg.com/vi/P9n7dOY0RZY/sddefault.jpg",
+      "width": 640,
+      "height": 480
+     },
+     "maxres": {
+      "url": "https://i.ytimg.com/vi/P9n7dOY0RZY/maxresdefault.jpg",
+      "width": 1280,
+      "height": 720
+     }
+    },
+    "channelTitle": "Kurt Benkert",
+    "playlistId": "UUBJb4FwDLbfJzArYeM42Qiw",
+    "position": 1,
+    "resourceId": {
+     "kind": "youtube#video",
+     "videoId": "P9n7dOY0RZY"
+    },
+    "videoOwnerChannelTitle": "Kurt Benkert",
+    "videoOwnerChannelId": "UCBJb4FwDLbfJzArYeM42Qiw"
+   },
+   "contentDetails": {
+    "videoId": "P9n7dOY0RZY",
+    "videoPublishedAt": "2026-10-19T16:40:37Z"
+   }
+  },
+  {
+   "kind": "youtube#playlistItem",
+   "etag": "9v0jCEKOnQLBxIf1u0yZF92ooMk",
+   "id": "VVVCSmI0RndETGJmSnpBclllTTQyUWl3LjZHTjZqVjI3cG13",
+   "snippet": {
+    "publishedAt": "2026-10-19T15:24:55Z",
+    "channelId": "UCBJb4FwDLbfJzArYeM42Qiw",
+    "title": "Travis Hunter is a WEAPON for the #Jaguars 🔥👀",
+    "description": "Travis Hunter is a WEAPON for the #Jaguars 🔥👀",
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/6GN6jV27pmw/default.jpg",
+      "width": 120,
+      "height": 90
+     },
+     "medium": {
+      "url": "https://i.ytimg.com/vi/6GN6jV27pmw/mqdefault.jpg",
+      "width": 320,
+      "height": 180
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/6GN6jV27pmw/hqdefault.jpg",
+      "width": 480,
+      "height": 360
+     },
+     "standard": {
+      "url": "https://i.ytimg.com/vi/6GN6jV27pmw/sddefault.jpg",
+      "width": 640,
+      "height": 480
+     },
+     "maxres": {
+      "url": "https://i.ytimg.com/vi/6GN6jV27pmw/maxresdefault.jpg",
+      "width": 1280,
+      "height": 720
+     }
+    },
+    "channelTitle": "Kurt Benkert",
+    "playlistId": "UUBJb4FwDLbfJzArYeM42Qiw",
+    "position": 2,
+    "resourceId": {
+     "kind": "youtube#video",
+     "videoId": "6GN6jV27pmw"
+    },
+    "videoOwnerChannelTitle": "Kurt Benkert",
+    "videoOwnerChannelId": "UCBJb4FwDLbfJzArYeM42Qiw"
+   },
+   "contentDetails": {
+    "videoId": "6GN6jV27pmw",
+    "videoPublishedAt": "2026-10-19T15:24:55Z"
+   }
+  }
+ ],
+ "pageInfo": {
+  "totalResults": 715,
+  "resultsPerPage": 3
+ }
+}
