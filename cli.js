@@ -14,6 +14,7 @@
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { scrape } from './lib/scrape.js';
+import { scrapeBrightdata, DEFAULT_MAX_RECORDS } from './lib/brightdata.js';
 import { exportNewsMd } from './lib/export-news.js';
 import { summarizeDay } from './lib/summarize.js';
 import { loadConfig } from './lib/config.js';
@@ -78,7 +79,15 @@ async function main() {
         process.exit(1);
       }
 
-      const result = await scrape(allUrls, {
+      // transcript_source: ytdlp (default) fetches captions with yt-dlp; brightdata buys them from
+      // BrightData's managed scraper, capped at brightdata_max_records per run (lib/brightdata.js).
+      const source = config.transcript_source || 'ytdlp';
+      if (source !== 'ytdlp' && source !== 'brightdata') {
+        console.error(`transcript_source must be ytdlp or brightdata (got "${source}")`);
+        process.exit(1);
+      }
+      const result = await (source === 'brightdata' ? scrapeBrightdata : scrape)(allUrls, {
+        maxRecords: parseInt(flag('--max-records') || config.brightdata_max_records || DEFAULT_MAX_RECORDS, 10),
         outputDir,
         model,
         sinceHours: parseInt(flag('--since-hours') || config.since_hours || '24', 10),
@@ -91,6 +100,7 @@ async function main() {
         keepSrt: config.keep_srt === true,
       });
       if (result.rateLimited) process.exitCode = 3;
+      if (result.stopped) process.exitCode = 4;   // a BrightData error stopped the run
 
       // Export table-format day files for the news pipeline (trading-platform)
       if (process.env.NEWS_MD_DIR && config.news_export !== false) {
@@ -257,6 +267,10 @@ Commands:
               --config PATH    Config file (default: config.yaml)
               --output DIR     Output directory (default: ./output)
               --model M        LLM: ollama|haiku|sonnet|opus (default: ollama)
+              --max-records N  transcript_source brightdata: records bought per
+                               run (default: brightdata_max_records, else 50)
+              Exit 3: YouTube rate-limited the run. Exit 4: a BrightData
+              error stopped it (nothing is retried; the next run resumes).
 
   summarize   Re-generate summaries for already-scraped videos
               [dayDir]         Directory to summarize (default: today)

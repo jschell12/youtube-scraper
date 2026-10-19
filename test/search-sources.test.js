@@ -32,7 +32,6 @@ test('a config without search keys adds no sources (main scraper unchanged)', as
 
 test('config.madden.yaml: 12 channels, all 32 teams, <=10 searches/day, no LLM or side feeds', async () => {
   const c = await loadConfig('config.madden.yaml');
-  assert.equal(c.channels.length, 12);
   assert.ok(c.channels.every(u => /^https:\/\/www\.youtube\.com\/channel\/UC[\w-]{22}$/.test(u)));
   assert.equal(new Set(c.search_teams).size, 32);
   for (let d = 0; d < 7; d++) {
@@ -46,4 +45,15 @@ test('config.madden.yaml: 12 channels, all 32 teams, <=10 searches/day, no LLM o
   assert.equal(c.r2_sync, false);
   assert.equal(c.keep_srt, true);
   assert.equal(c.force_category, 'madden');
+});
+
+test('config.madden.yaml: 13 channels, Kurt Benkert first, BrightData capped at 50; config.yaml stays on yt-dlp', async () => {
+  const c = await loadConfig('config.madden.yaml');
+  assert.equal(c.channels.length, 13);
+  assert.equal(c.transcript_source, 'brightdata');
+  assert.equal(c.brightdata_max_records, 50);
+  assert.equal(c.channels[0], 'https://www.youtube.com/channel/UCBJb4FwDLbfJzArYeM42Qiw');
+  assert.equal(new Set(c.channels).size, c.channels.length);
+  const main = await loadConfig('config.yaml');
+  assert.equal(main.transcript_source ?? 'ytdlp', 'ytdlp');
 });

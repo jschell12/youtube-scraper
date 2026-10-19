@@ -39,12 +39,42 @@ than moving on to the next source. Detection relies on yt-dlp printing the 429 o
 stderr; with `--no-warnings` a subtitle 429 that yt-dlp downgrades to a warning
 would still read as "no transcript".
 
+## Transcript source (`transcript_source: ytdlp | brightdata`)
+
+`ytdlp` (the default, and what `config.yaml` uses) is everything above.
+`brightdata` (what `config.madden.yaml` uses) buys transcripts from BrightData's
+managed YouTube scraper instead, for a host YouTube no longer serves captions to
+(lib/brightdata.js). Needs `YOUTUBE_API_KEY` and `BRIGHTDATA_API_KEY`; refuses to
+start without either.
+
+- Discovery is the Data API only, never yt-dlp: channel/playlist uploads honor
+  `since_hours` and `limit`, `ytsearchN:` sources go through `search.list`
+  (100 quota units each), single video URLs are taken as given. Seen ids are dropped.
+- `brightdata_max_records` (default 50, or `--max-records N`) caps what one run
+  buys, at $1.50 per 1,000 records. New videos past the cap wait for a later run;
+  sources earlier in the config win, which is why the first channel is first.
+- One trigger per run. The snapshot id goes to `<output>/brightdata-pending.json`
+  before polling, so a crash or a slow snapshot (30 min wait limit) is collected
+  by the next run rather than bought twice.
+- Any BrightData HTTP error, network failure or failed snapshot stops the run
+  with exit code 4. Nothing is retried. The key goes only in the Authorization
+  header and is scrubbed from every error message.
+- Rows are written by `saveVideo` (lib/scrape.js), the same as yt-dlp results,
+  so `push` reads them unchanged.
+- A miss (a row with no `formatted_transcript` cues, or an error row) is counted
+  per id in `<output>/brightdata-attempts.json`. After 3 misses, or one
+  `dead_page`, discovery skips that id for good (`--rescrape` overrides). The
+  bound matters because search and single-video sources have no date window: an
+  uncaptionable search hit would otherwise be bought on every run. seen.json is
+  untouched by misses and still means "saved".
+
 ## Architecture
 
 - `cli.js` — Entry point, arg parsing
 - `lib/extract.js` — yt-dlp wrapper: fetch metadata + transcripts, parse SRT
 - `lib/youtube-api.js` — Data API v3 discovery: when `YOUTUBE_API_KEY` is set, channel/playlist listing goes through the API and ledger-seen videos are skipped before yt-dlp runs (yt-dlp then only fetches transcripts for new videos); falls back to yt-dlp listing on any API failure or missing key
-- `lib/scrape.js` — Orchestrator: iterates URLs, categorizes, summarizes, writes markdown, updates ledger
+- `lib/scrape.js` — Orchestrator: iterates URLs, categorizes, summarizes, writes markdown, updates ledger; `saveVideo` writes one video and is shared with lib/brightdata.js
+- `lib/brightdata.js` — `transcript_source: brightdata`: Data API discovery, one capped BrightData trigger per run, snapshot poll and download, rows to `saveVideo`
 - `lib/categorize.js` — Classifies videos into categories via Claude CLI
 - `lib/summarize.js` — Category-specific structured summaries via Claude CLI (16 templates)
 - `lib/push.js` — `push` command: webhook POST per video, append-only `pushed.jsonl` ledger, stops on non-2xx
@@ -85,6 +115,8 @@ output/
   2026-07-03/
     <videoId>-<slug>.md              # Transcript (title + metadata + category + full text)
     _summary-<videoId>-<slug>.md     # Structured summary (tables, key advice, verdict)
+  brightdata-pending.json            # brightdata only: a snapshot bought but not yet collected
+  brightdata-attempts.json           # brightdata only: per-id misses; given-up ids are never bought again
 ```
 
 ## MCP Server

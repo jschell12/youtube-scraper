@@ -46,6 +46,33 @@ model: haiku
 node cli.js scrape
 ```
 
+## Transcript source
+
+By default captions come from yt-dlp. A config can buy them from
+[BrightData](https://brightdata.com)'s managed YouTube scraper instead, which
+helps when YouTube has stopped serving captions to your IP:
+
+```yaml
+transcript_source: brightdata   # default: ytdlp
+brightdata_max_records: 50      # records bought per run, $1.50 per 1,000
+```
+
+```bash
+export YOUTUBE_API_KEY=...      # Data API v3, used to find new videos
+export BRIGHTDATA_API_KEY=...   # never logged, scrubbed from error messages
+node cli.js scrape --config config.madden.yaml --max-records 5
+```
+
+New videos are found through the YouTube Data API (`since_hours`, `limit` and
+`seen.json` apply as usual; search sources use `search.list`), and the first
+`brightdata_max_records` of them go to BrightData in one request. The output
+files are the same as with yt-dlp, so `push` works unchanged. Any BrightData
+HTTP error stops the run with exit code 4 and is not retried. A snapshot that
+was bought but not collected is recorded in `brightdata-pending.json` and picked
+up by the next run. A video that comes back without a transcript is tried again
+on later runs, at most 3 times (a deleted video, once), counted in
+`brightdata-attempts.json`.
+
 ## Categories
 
 Each video is automatically classified into one of:

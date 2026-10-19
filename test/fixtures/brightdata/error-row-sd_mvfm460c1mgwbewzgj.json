@@ -1,0 +1,10 @@
+{
+ "timestamp": "2026-10-19T18:53:34.057Z",
+ "input": {
+  "url": "https://www.youtube.com/watch?v=nc6slMENJkg",
+  "country": "",
+  "transcription_language": ""
+ },
+ "error": "Video unavailable",
+ "error_code": "dead_page"
+}

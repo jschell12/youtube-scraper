@@ -1,0 +1,144 @@
+{
+ "kind": "youtube#searchListResponse",
+ "etag": "kWsgrfcD8AO9es_-qBM8LHjmAh0",
+ "nextPageToken": "CAMQAA",
+ "regionCode": "US",
+ "pageInfo": {
+  "totalResults": 1000000,
+  "resultsPerPage": 3
+ },
+ "items": [
+  {
+   "kind": "youtube#searchResult",
+   "etag": "p8aOGUj6dQMkUn9zu0bmpnu8iMc",
+   "id": {
+    "kind": "youtube#video",
+    "videoId": "E3fHnxeUzCY"
+   },
+   "snippet": {
+    "publishedAt": "2026-08-27T14:00:13Z",
+    "channelId": "UCrkJo0IwMRDKb63L5pPmllA",
+    "title": "Best Offense Playbook Madden 27 Best Passing Formations &amp; RPOs That Glitch Out Defense - Free E Book",
+    "description": "Free Madden 27 E-Book Showcasing the Best passing plays in the game as well as RPOs that glitch defenses for easy 1 play ...",
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/E3fHnxeUzCY/default.jpg",
+      "width": 120,
+      "height": 90
+     },
+     "medium": {
+      "url": "https://i.ytimg.com/vi/E3fHnxeUzCY/mqdefault.jpg",
+      "width": 320,
+      "height": 180
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/E3fHnxeUzCY/hqdefault.jpg",
+      "width": 480,
+      "height": 360
+     },
+     "standard": {
+      "url": "https://i.ytimg.com/vi/E3fHnxeUzCY/sddefault.jpg",
+      "width": 640,
+      "height": 480
+     },
+     "maxres": {
+      "url": "https://i.ytimg.com/vi/E3fHnxeUzCY/maxresdefault.jpg",
+      "width": 1280,
+      "height": 720
+     }
+    },
+    "channelTitle": "Gotem Coach",
+    "liveBroadcastContent": "none",
+    "publishTime": "2026-08-27T14:00:13Z"
+   }
+  },
+  {
+   "kind": "youtube#searchResult",
+   "etag": "76zRp1RoL6F0w4r3TQCoAQAB_DQ",
+   "id": {
+    "kind": "youtube#video",
+    "videoId": "Fj5DKdZhgXY"
+   },
+   "snippet": {
+    "publishedAt": "2026-08-21T01:45:06Z",
+    "channelId": "UCrRiTjWdTatQ9q6ul9RIaog",
+    "title": "The COMPLETE Guide To Offense In Madden 27!",
+    "description": "Learn Easy Offensive & Defensive Schemes PROVEN to win you more games! Use code LAUNCH for 40% Off here ...",
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/Fj5DKdZhgXY/default.jpg",
+      "width": 120,
+      "height": 90
+     },
+     "medium": {
+      "url": "https://i.ytimg.com/vi/Fj5DKdZhgXY/mqdefault.jpg",
+      "width": 320,
+      "height": 180
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/Fj5DKdZhgXY/hqdefault.jpg",
+      "width": 480,
+      "height": 360
+     },
+     "standard": {
+      "url": "https://i.ytimg.com/vi/Fj5DKdZhgXY/sddefault.jpg",
+      "width": 640,
+      "height": 480
+     },
+     "maxres": {
+      "url": "https://i.ytimg.com/vi/Fj5DKdZhgXY/maxresdefault.jpg",
+      "width": 1280,
+      "height": 720
+     }
+    },
+    "channelTitle": "CivilGG",
+    "liveBroadcastContent": "none",
+    "publishTime": "2026-08-21T01:45:06Z"
+   }
+  },
+  {
+   "kind": "youtube#searchResult",
+   "etag": "coXZq2SmK7HwUmM7HFdq00UJAMs",
+   "id": {
+    "kind": "youtube#video",
+    "videoId": "bGZkRvkwX6Q"
+   },
+   "snippet": {
+    "publishedAt": "2026-08-14T13:00:04Z",
+    "channelId": "UCIYBt_UqUqiXs-RZDYLC0sw",
+    "title": "This Offense Beats EVERYTHING In Madden 27",
+    "description": "The New York Giants offensive playbook remains one of the most complete options in Madden 27. Antcap is starting the year in ...",
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/bGZkRvkwX6Q/default.jpg",
+      "width": 120,
+      "height": 90
+     },
+     "medium": {
+      "url": "https://i.ytimg.com/vi/bGZkRvkwX6Q/mqdefault.jpg",
+      "width": 320,
+      "height": 180
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/bGZkRvkwX6Q/hqdefault.jpg",
+      "width": 480,
+      "height": 360
+     },
+     "standard": {
+      "url": "https://i.ytimg.com/vi/bGZkRvkwX6Q/sddefault.jpg",
+      "width": 640,
+      "height": 480
+     },
+     "maxres": {
+      "url": "https://i.ytimg.com/vi/bGZkRvkwX6Q/maxresdefault.jpg",
+      "width": 1280,
+      "height": 720
+     }
+    },
+    "channelTitle": "HuddleGG",
+    "liveBroadcastContent": "none",
+    "publishTime": "2026-08-14T13:00:04Z"
+   }
+  }
+ ]
+}
