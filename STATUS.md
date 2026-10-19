@@ -1,5 +1,21 @@
 # Status
 
+## 2026-10-19
+
+### Completed
+- PR #25: `transcript_source: brightdata | ytdlp`. The Madden config buys transcripts from BrightData's managed YouTube scraper (dataset `gd_lk56epmy2i5g7lzu0k`). Discovery is Data API only, search sources go through `search.list`, there is one capped trigger per run (`brightdata_max_records`, default 50), snapshot ids go in `brightdata-pending.json`, misses are bounded in `brightdata-attempts.json` (3, or one `dead_page`), and any BrightData error exits 4 with no retry. Kurt Benkert is the first Madden channel. Tests: 40 pass over responses recorded 2026-10-19.
+- Measured 2026-10-19, read-only: progress of snapshot `sd_mvfl47b4i0700m0pb` was `ready`, 3 records, 0 errors. The bulk run's first 100-video snapshot `sd_mvfm460c1mgwbewzgj` had 99 rows with cues and 1 `dead_page` row. Data API `playlistItems` on `UUBJb4FwDLbfJzArYeM42Qiw` returned 3 uploads that day. `search` for "Madden 27 how to beat the Bills" returned 3 video ids.
+
+### In progress
+- PR #25 is open and waiting on review. This repo has no reviewer session and no auto-merge. It merges cleanly with #24 in either order (the merged tree passes 45/45).
+
+### Blockers
+- The job that runs `config.madden.yaml` needs `BRIGHTDATA_API_KEY` in its environment before the next run, and `YOUTUBE_API_KEY` is now required. Without them the run exits 1 before any request and spends nothing.
+
+### Next steps
+- Once both #24 and #25 have landed, retitle the old "12 channels" config test.
+- After the first scheduled brightdata run, check exit code, records bought, `brightdata-attempts.json`, and whether the pushes reached PFE.
+
 ## 2026-10-08
 
 ### Completed
