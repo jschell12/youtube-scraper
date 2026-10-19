@@ -69,7 +69,9 @@ New videos are found through the YouTube Data API (`since_hours`, `limit` and
 files are the same as with yt-dlp, so `push` works unchanged. Any BrightData
 HTTP error stops the run with exit code 4 and is not retried. A snapshot that
 was bought but not collected is recorded in `brightdata-pending.json` and picked
-up by the next run.
+up by the next run. A video that comes back without a transcript is tried again
+on later runs, at most 3 times (a deleted video, once), counted in
+`brightdata-attempts.json`.
 
 ## Categories
 

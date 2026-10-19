@@ -60,8 +60,13 @@ start without either.
   with exit code 4. Nothing is retried. The key goes only in the Authorization
   header and is scrubbed from every error message.
 - Rows are written by `saveVideo` (lib/scrape.js), the same as yt-dlp results,
-  so `push` reads them unchanged. A row with no `formatted_transcript` cues is
-  not saved or marked seen, so it is requested again while still in the window.
+  so `push` reads them unchanged.
+- A miss (a row with no `formatted_transcript` cues, or an error row) is counted
+  per id in `<output>/brightdata-attempts.json`. After 3 misses, or one
+  `dead_page`, discovery skips that id for good (`--rescrape` overrides). The
+  bound matters because search and single-video sources have no date window: an
+  uncaptionable search hit would otherwise be bought on every run. seen.json is
+  untouched by misses and still means "saved".
 
 ## Architecture
 
@@ -111,6 +116,7 @@ output/
     <videoId>-<slug>.md              # Transcript (title + metadata + category + full text)
     _summary-<videoId>-<slug>.md     # Structured summary (tables, key advice, verdict)
   brightdata-pending.json            # brightdata only: a snapshot bought but not yet collected
+  brightdata-attempts.json           # brightdata only: per-id misses; given-up ids are never bought again
 ```
 
 ## MCP Server

@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   scrapeBrightdata, discoverNew, cuesToSrt, rowToVideo, isErrorRow, makeClient, scrub,
-  videoIdFromUrl, PENDING_FILE, DATASET_ID,
+  videoIdFromUrl, PENDING_FILE, ATTEMPTS_FILE, MAX_ATTEMPTS, DATASET_ID,
 } from '../lib/brightdata.js';
 import { parseSrt } from '../lib/extract.js';
 import { pushTranscripts } from '../lib/push.js';
@@ -278,4 +278,44 @@ test('discoverNew: searches, single videos, channels; dedup across sources; a fa
   assert.deepEqual(calls[1], ['channel', 'https://www.youtube.com/channel/UCBJb4FwDLbfJzArYeM42Qiw', 72, 3]);
   assert.ok(logs.some(l => /UCxxx.*discovery failed \(quota\)/.test(l)));
   assert.ok(logs.some(l => /\/c\/vanity: not discoverable/.test(l)));
+});
+
+test('a dead_page error row (recorded) is given up on at once and never bought again', async () => {
+  const outputDir = await tmp();
+  const dead = videoIdFromUrl(ERROR_ROW.input.url);
+  const run = async () => {
+    const f = fakeFetch({ trigger: ok(TRIGGERED), progress: ok(READY), snapshot: ok([ERROR_ROW]) });
+    // a search source: no date window, so only the attempts file stops a re-buy
+    const api = { searchVideos: async () => [{ id: dead }], discoverVideos: async () => [] };
+    const r = await scrapeBrightdata(['ytsearch1:anything'], { outputDir, env: ENV, fetchImpl: f, api, log: quiet });
+    return { r, f };
+  };
+  const first = await run();
+  assert.deepEqual(first.f.calls[0].body.map(b => b.url), [ERROR_ROW.input.url]);
+  assert.deepEqual([first.r.recordErrors, first.r.givenUp], [1, 1]);
+  const second = await run();
+  assert.equal(second.f.calls.length, 0);
+  const attempts = JSON.parse(await readFile(path.join(outputDir, ATTEMPTS_FILE), 'utf8'));
+  assert.deepEqual([attempts[dead].attempts, attempts[dead].given_up], [1, true]);
+  assert.equal(existsSync(path.join(outputDir, 'seen.json')), false);   // seen.json still means "saved"
+});
+
+test(`a video with no cues is bought at most ${MAX_ATTEMPTS} times; a later success clears its count`, async () => {
+  const outputDir = await tmp();
+  const bare = { ...ROWS[0], formatted_transcript: null };      // real row, cues removed: none observed live yet
+  const triggers = [];
+  for (let i = 0; i < MAX_ATTEMPTS + 2; i++) {
+    const f = fakeFetch({ trigger: ok(TRIGGERED), progress: ok(READY), snapshot: ok([bare]) });
+    await scrapeBrightdata(SOURCES, { outputDir, env: ENV, fetchImpl: f, api: apiFor([bare.video_id]), log: quiet });
+    triggers.push(f.calls.filter(c => c.route === 'trigger').length);
+  }
+  assert.deepEqual(triggers, [1, 1, 1, 0, 0]);
+  // a transcript on a later attempt saves the video and clears its count
+  const other = await tmp();
+  await writeFile(path.join(other, ATTEMPTS_FILE), JSON.stringify({ [bare.video_id]: { attempts: 1, given_up: false } }));
+  const f = fakeFetch({ trigger: ok(TRIGGERED), progress: ok(READY), snapshot: ok([ROWS[0]]) });
+  const r = await scrapeBrightdata(SOURCES, { outputDir: other, env: ENV, fetchImpl: f, api: apiFor([bare.video_id]), log: quiet,
+    keepSrt: true, summarize: false, forceCategory: 'madden' });
+  assert.equal(r.totalNew, 1);
+  assert.deepEqual(JSON.parse(await readFile(path.join(other, ATTEMPTS_FILE), 'utf8')), {});
 });
