@@ -47,12 +47,8 @@ channels:
   - https://www.youtube.com/channel/UC5IxYfT8P4YPhCq4q0-6H_w
   # BLT Madden 27
   - https://www.youtube.com/channel/UCI2RRGSCacND1Xi6jWMPt1g
-  # Madden School
-  - https://www.youtube.com/channel/UCwZLmiLcq6QA7GD67NpGXhg
   # CivilGG
   - https://www.youtube.com/channel/UCrRiTjWdTatQ9q6ul9RIaog
-  # HuddleGG
-  - https://www.youtube.com/channel/UCIYBt_UqUqiXs-RZDYLC0sw
   # EricRayweather
   - https://www.youtube.com/channel/UCq_2n18CJaRVGxEfxtCfI-Q
   # GmiasWorld
@@ -63,6 +59,15 @@ channels:
 playlists:
 
 videos:
+
+# Channels whose videos are never fetched, written or pushed, from any source:
+# channel lists, the team searches below, playlists and video URLs. Creators
+# who sell competing paid gameplans (see README).
+exclude_channels:
+  # Madden School
+  - UCwZLmiLcq6QA7GD67NpGXhg
+  # HuddleGG
+  - UCIYBt_UqUqiXs-RZDYLC0sw
 
 # --- Team-specific counters (searches) --------------------------------------
 # Each run takes search_teams_per_run teams from the list below, advancing by

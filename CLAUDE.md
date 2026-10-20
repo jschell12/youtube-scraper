@@ -30,6 +30,15 @@ A config can turn the scraper into a captions-only feed for another service:
 writes `<id>-<slug>.srt` + `_video-<id>.json`, which `push` sends. Always give a
 side run its own `--output` dir: `seen.json` is last-writer-wins.
 
+`exclude_channels` (channel ids, lib/exclude.js) keeps a channel out from every
+entry point: excluded channel sources are not listed, Data API search and
+playlist hits are dropped by `channelId`, every fetched video or BrightData row
+is checked on its own channel (`channel_id` / `youtuber_id`) before `saveVideo`,
+and `push` skips excluded sidecars already on disk. An explicit video URL has no
+channel until it is fetched, so on the BrightData path that one record is bought,
+dropped and marked given up. A malformed id fails the run. config.madden.yaml
+excludes creators who sell competing paid gameplans.
+
 Search sources: `search_queries` (fixed) and `search_templates` x `search_teams`
 (rotated `search_teams_per_run` per UTC day) become `ytsearchN:` sources; ids are
 listed flat and filtered against the ledger before any caption fetch.
@@ -78,6 +87,7 @@ start without either.
 - `lib/categorize.js` — Classifies videos into categories via Claude CLI
 - `lib/summarize.js` — Category-specific structured summaries via Claude CLI (16 templates)
 - `lib/push.js` — `push` command: webhook POST per video, append-only `pushed.jsonl` ledger, stops on non-2xx
+- `lib/exclude.js` — `exclude_channels` parsing and the channel/source checks every entry point uses
 - `lib/search-sources.js` — config searches to `ytsearchN:` sources, daily team rotation
 - `lib/ledger.js` — seen.json dedup (video ID → metadata + category, incremental persistence)
 - `lib/discover.js` — channel discovery: per-topic search → enrich → LLM judge (fails **closed**, unlike the summarizer) → suggestion queue
