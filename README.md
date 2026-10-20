@@ -46,6 +46,22 @@ model: haiku
 node cli.js scrape
 ```
 
+### Excluding channels
+
+`exclude_channels` lists channel ids (`UC` + 22 characters) whose videos are
+never fetched, written or pushed, whichever way they arrive: a channel source, a
+search hit, a playlist entry or an explicit video URL. The check runs again on
+every fetched video's own channel before anything is saved, and `push` skips a
+sidecar from an excluded channel even if an older scrape wrote it. A malformed
+id stops the run rather than being ignored.
+
+```yaml
+exclude_channels:
+  - UCxxxxxxxxxxxxxxxxxxxxxx
+```
+
+`config.madden.yaml` uses it for creators who sell competing paid gameplans.
+
 ## Transcript source
 
 By default captions come from yt-dlp. A config can buy them from

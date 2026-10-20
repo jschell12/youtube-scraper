@@ -47,9 +47,9 @@ test('config.madden.yaml: 12 channels, all 32 teams within 16 days, <=10 searche
   assert.equal(c.force_category, 'madden');
 });
 
-test('config.madden.yaml: 13 channels, Kurt Benkert first, BrightData capped at 50; config.yaml stays on yt-dlp', async () => {
+test('config.madden.yaml: 11 channels, Kurt Benkert first, BrightData capped at 50; config.yaml stays on yt-dlp', async () => {
   const c = await loadConfig('config.madden.yaml');
-  assert.equal(c.channels.length, 13);
+  assert.equal(c.channels.length, 11);
   assert.equal(c.transcript_source, 'brightdata');
   assert.equal(c.brightdata_max_records, 50);
   assert.equal(c.channels[0], 'https://www.youtube.com/channel/UCBJb4FwDLbfJzArYeM42Qiw');

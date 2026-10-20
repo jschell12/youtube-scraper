@@ -23,6 +23,7 @@ import { discover, parseTopics } from './lib/discover.js';
 import { listSuggestions, reviewSuggestion, DEFAULT_PROFILE } from './lib/suggestions.js';
 import { pushTranscripts, accessHeadersFromEnv } from './lib/push.js';
 import { searchSources } from './lib/search-sources.js';
+import { excludedChannels } from './lib/exclude.js';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -61,6 +62,8 @@ async function main() {
   const config = await loadConfig(configPath);
   const outputDir = flag('--output') || config.output_dir || './output';
   const model = flag('--model') || config.model || 'ollama';
+  // Channel ids whose videos are never fetched, written or pushed (lib/exclude.js); a malformed id fails the run.
+  const exclude = excludedChannels(config);
 
   switch (command) {
     case 'scrape': {
@@ -98,6 +101,7 @@ async function main() {
         // spend LLM calls or feed the news pipeline / shared R2 prefix.
         summarize: config.summarize !== false,
         keepSrt: config.keep_srt === true,
+        exclude,
         gapSeconds: parseFloat(flag('--gap-seconds') || config.request_gap_seconds || '0'),
       });
       if (result.rateLimited) process.exitCode = 3;
@@ -245,9 +249,11 @@ async function main() {
           headers,
           limit: parseInt(flag('--limit') || '0', 10),
           dryRun: hasFlag('--dry-run'),
+          exclude,
         });
         console.log(`Done. ${res.pushed} ${hasFlag('--dry-run') ? 'would be pushed' : 'pushed'}, ` +
-          `${res.skipped} already pushed, ${res.oversize} over the size limit, ${res.pending} left for next run.`);
+          `${res.skipped} already pushed, ${res.oversize} over the size limit, ` +
+          `${res.excluded} from excluded channels, ${res.pending} left for next run.`);
       } catch (err) {
         console.error(`Push stopped: ${err.message}`);
         console.error('Nothing after this video was sent; the next run resumes from it.');
